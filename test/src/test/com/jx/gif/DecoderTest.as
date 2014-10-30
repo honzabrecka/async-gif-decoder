@@ -48,17 +48,24 @@ package test.com.jx.gif
 		}
 		
 		[Test(async)]
-		public function decode():void
-		{
-			Async.handleEvent(this, decoder, Event.COMPLETE, null);
-			decoder.decode(new ByteArray());
-		}
-		
-		[Test(async)]
 		public function decodeNull():void
 		{
 			Async.handleEvent(this, decoder, ErrorEvent.ERROR, null);
 			decoder.decode(null);
+		}
+		
+		[Test(async)]
+		public function decodePNG():void
+		{
+			Async.handleEvent(this, decoder, ErrorEvent.ERROR, null);
+			decoder.decode(new Fixtures.PNG_1x1() as ByteArray);
+		}
+		
+		[Test(async)]
+		public function decode():void
+		{
+			Async.handleEvent(this, decoder, Event.COMPLETE, null);
+			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
 		}
 		
 	}
