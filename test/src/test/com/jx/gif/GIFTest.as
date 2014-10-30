@@ -15,6 +15,8 @@ package test.com.jx.gif
 	import flash.net.URLRequest;
 	
 	import org.flexunit.asserts.assertEquals;
+	import org.flexunit.asserts.assertFalse;
+	import org.flexunit.asserts.assertTrue;
 	import org.flexunit.async.Async;
 
 	public class GIFTest
@@ -66,7 +68,7 @@ package test.com.jx.gif
 		}
 		
 		[Test(expects="com.jx.gif.FunctionSequenceError")]
-		public function isPlaying():void
+		public function callIsPlayingBeforeLoad():void
 		{
 			gif.isPlaying;
 		}
@@ -155,6 +157,22 @@ package test.com.jx.gif
 			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
 			{
 				gif.gotoAndStop(2);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
+		}
+		
+		[Test(async)]
+		public function playing():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				assertFalse(gif.isPlaying);
+				
+				gif.play();
+				assertTrue(gif.isPlaying);
+				
+				gif.stop();
+				assertFalse(gif.isPlaying);
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
