@@ -33,7 +33,7 @@ package test.com.jx.gif
 		[After]
 		public function tearDown():void
 		{
-			decoder.dispose();
+			decoder.destroy();
 			decoder = null;
 		}
 		
@@ -52,11 +52,7 @@ package test.com.jx.gif
 		[Test]
 		public function size():void
 		{
-			var size:Rectangle = decoder.size;
-			assertEquals(0, size.x);
-			assertEquals(0, size.y);
-			assertEquals(0, size.width);
-			assertEquals(0, size.height);
+			assertNull(decoder.size);
 		}
 		
 		[Test(async)]
@@ -74,7 +70,7 @@ package test.com.jx.gif
 		}
 		
 		[Test(async)]
-		public function decode():void
+		public function decode1x1SingleFrame():void
 		{
 			Async.handleEvent(this, decoder, Event.COMPLETE, function(event:Event, data:Object):void
 			{
@@ -83,6 +79,7 @@ package test.com.jx.gif
 				assertEquals(0, size.y);
 				assertEquals(1, size.width);
 				assertEquals(1, size.height);
+				assertEquals(1, decoder.frames.length);
 			});
 			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
 		}

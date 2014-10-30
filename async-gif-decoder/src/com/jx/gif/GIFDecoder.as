@@ -8,6 +8,7 @@
 
 package com.jx.gif
 {
+	import flash.display.BitmapData;
 	import flash.display.Sprite;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -18,24 +19,74 @@ package com.jx.gif
 	public class GIFDecoder extends Sprite
 	{
 		
+		/** max decoder pixel stack size */
+		private static const MAX_STACK_SIZE:uint = 4096;
+		private static const NULL_CODE:int = -1;
+		
 		private var frameTime:uint;
 		private var stream:ByteArray;
-		
-		private var w:uint;
-		private var h:uint;
+		private var currentPhase:String;
 		
 		/** global color table used */
 		private var gctFlag:Boolean;
 		/** size of global color table */
 		private var gctSize:int;
+		/** local color table flag */
+		private var lctFlag:Boolean;
+		/** interlace flag */
+		private var interlace:Boolean;
+		/** local color table size */
+		private var lctSize:int;
 		/** background color */
 		private var bgColor:int;
+		/** previous bg color */
+		private var lastBgColor:int;
 		/** background color index */
 		private var bgIndex:int;
 		/** pixel aspect ratio */
 		private var pixelAspect:int;
 		/** global color table */
 		private var gct:Vector.<uint>;
+		/** local color table */
+		private var lct:Vector.<uint>;
+		/** active color table */
+		private var act:Vector.<uint>;
+		/** current data block */
+		private var block:ByteArray;
+		/** current block size */
+		private var blockSize:int = 0;
+		/** last graphic control extension info */
+		private var dispose:int = 0;
+		/** 0=no action; 1=leave in place; 2=restore to bg; 3=restore to prev */
+		private var lastDispose:int = 0;
+		/** use transparent color */
+		private var transparency:Boolean = false;
+		/** delay in milliseconds */
+		private var delay:int = 0;
+		/** transparent color index */
+		private var transIndex:int;
+		/** iterations; 0 = repeat forever */
+		private var _loopCount:int = 1;
+		/** current frame position&size */
+		private var ix:int;
+		private var iy:int;
+		private var iw:int;
+		private var ih:int;
+		/** LZW decoder working arrays */
+		private var prefix:Array
+		private var suffix:Array;
+		private var pixelStack:Array;
+		private var pixels:Array;
+		
+		private var image:BitmapData;
+		private var bitmap:BitmapData;
+		// previous frame
+		private var lastImage:BitmapData;
+		private var lastRect:Rectangle;
+		private var save:int;
+		
+		private var _frames:Vector.<GIFFrame>;
+		private var frameCount:int;
 		
 		private var cachedSize:Rectangle;
 		
@@ -56,14 +107,14 @@ package com.jx.gif
 			}
 		}
 		
-		public function dispose():void
+		public function destroy():void
 		{
 			cleanUp();
 		}
 		
 		public function get frames():Vector.<GIFFrame>
 		{
-			return null;
+			return _frames;
 		}
 		
 		public function get loopCount():uint
@@ -73,7 +124,6 @@ package com.jx.gif
 		
 		public function get size():Rectangle
 		{
-			cachedSize ||= new Rectangle(0, 0, w, h);
 			return cachedSize;
 		}
 		
@@ -87,7 +137,16 @@ package com.jx.gif
 			if (!stream) {
 				throw new Error("Stream can't be null.");
 			}
+			
+			block = new ByteArray();
+			frameCount = 0;
+			_frames = new Vector.<GIFFrame>();
+			gct = null;
+			lct = null;
 		}
+		
+		//------------------------------------------
+		// HEAD
 		
 		private function decodeHead():void
 		{
@@ -118,12 +177,12 @@ package com.jx.gif
 		private function readLSD():void
 		{
 			// logical screen size
-			w = readShort();
-			h = readShort();
-			
+			var width:uint = readShort();
+			var height:uint = readShort();
 			// packed fields
 			var packed:uint = readSingleByte();
 			
+			cachedSize = new Rectangle(0, 0, width, height);
 			gctFlag = (packed & 0x80) != 0; // 1   : global color table flag
 			// 2-4 : color resolution
 			// 5   : gct sort flag
@@ -172,11 +231,19 @@ package com.jx.gif
 			return tab;
 		}
 		
+		//------------------------------------------
+		// BODY
+		
 		private function enterFrameHandler(event:Event):void
 		{
-			if (decodeBody()) {
+			try {
+				if (decodeBody()) {
+					cleanUp();
+					dispatchEvent(new Event(Event.COMPLETE));
+				}
+			} catch (error:Error) {
+				dispatchError(error.message);
 				cleanUp();
-				dispatchEvent(new Event(Event.COMPLETE));
 			}
 		}
 		
@@ -194,8 +261,482 @@ package com.jx.gif
 		
 		private function decodeBlock():Boolean
 		{
-			return true;
+			if (currentPhase == "decodingImage") {
+				decodeImageData();
+				return false;
+			}
+			if (currentPhase == "transferPixels") {
+				transferPixels();
+				return false;
+			}
+			if (currentPhase == "pushFrame") {
+				pushFrame();
+				return false;
+			}
+			
+			var isComplete:Boolean = false;
+			var byte:uint = readSingleByte();
+			
+			switch (byte) {
+				case 0x2C: // image separator
+					readImage();
+					break;
+				
+				case 0x21: // extension
+					readApplicationExtension();
+					break;
+				
+				case 0x3b : // terminator
+					isComplete = true;
+					break;
+				
+				case 0x00 : // bad byte, but keep going and see what happens
+					break;
+				
+				default :
+					throw new Error("Format error.");
+					break;
+			}
+			
+			return isComplete;
 		}
+		
+		private function readApplicationExtension():void
+		{
+			var byte:uint = readSingleByte();
+			
+			switch (byte) {
+				case 0xf9: // graphics control extension
+					readGraphicControlExtension();
+					break;
+				
+				case 0xff: // application extension
+					readBlock();
+					
+					var app:String = "";
+					
+					for (var i:uint = 0; i < 11; i++) {
+						app += block[i];
+					}
+					
+					if (app == "NETSCAPE2.0") {
+						readNetscapeExt();
+					} else {
+						skip(); // don't care
+					}
+					
+					break;
+				
+				default: // uninteresting extension
+					skip();
+					break;
+			}
+		}
+		
+		private function readGraphicControlExtension():void
+		{
+			readSingleByte(); // block size
+			var packed:int = readSingleByte(); // packed fields
+			dispose = (packed & 0x1c) >> 2; // disposal method
+			
+			if (dispose == 0) {
+				dispose = 1; // elect to keep old image if discretionary
+			}
+			
+			transparency = (packed & 1) != 0;
+			delay = readShort() * 10; // delay in milliseconds
+			transIndex = readSingleByte(); // transparent color index
+			readSingleByte(); // block terminator
+		}
+		
+		/**
+		 * Reads Netscape extenstion to obtain iteration count
+		 */
+		private function readNetscapeExt():void
+		{
+			var b1:int;
+			var b2:int;
+			
+			do {
+				readBlock();
+				
+				if (block[0] == 1) {
+					// loop count sub-block
+					b1 = (block[1]) & 0xff;
+					b2 = (block[2]) & 0xff;
+					_loopCount = (b2 << 8) | b1;
+				}
+			} while (blockSize > 0);
+		}
+		
+		/**
+		 * Reads next frame image
+		 */
+		private function readImage():void
+		{
+			ix = readShort(); // (sub)image position & size
+			iy = readShort();
+			iw = readShort();
+			ih = readShort();
+			save = 0;
+			
+			var packed:int = readSingleByte();
+			lctFlag = (packed & 0x80) != 0; // 1 - local color table flag
+			interlace = (packed & 0x40) != 0; // 2 - interlace flag
+			// 3 - sort flag
+			// 4-5 - reserved
+			lctSize = 2 << (packed & 7); // 6-8 - local color table size
+			
+			if (lctFlag) {
+				lct = readColorTable(lctSize); // read table
+				act = lct; // make local table active
+			} else {
+				act = gct; // make global table active
+				
+				if (bgIndex == transIndex) {
+					bgColor = 0;
+				}
+			}
+			
+			if (transparency) {
+				save = act[transIndex];
+				act[transIndex] = 0; // set transparent color if specified
+			}
+			
+			if (!act) {
+				throw new Error("Format error."); // no color table defined
+			}
+			
+			currentPhase = "decodingImage";
+		}
+		
+		/**
+		 * Decodes LZW image data into pixel array.
+		 * Adapted from John Cristy's ImageMagick.
+		 */
+		private function decodeImageData():void
+		{
+			var npix:int = iw * ih;
+			var available:int;
+			var clear:int;
+			var code_mask:int;
+			var code_size:int;
+			var end_of_information:int;
+			var in_code:int;
+			var old_code:int;
+			var bits:int;
+			var code:int;
+			var count:int;
+			var i:int;
+			var datum:int;
+			var data_size:int;
+			var first:int;
+			var top:int;
+			var bi:int;
+			var pi:int;
+			
+			if ((pixels == null) || (pixels.length < npix)) {
+				pixels = new Array ( npix ); // allocate new pixel array
+			}
+			
+			if (prefix == null) prefix = new Array(MAX_STACK_SIZE);
+			if (suffix == null) suffix = new Array(MAX_STACK_SIZE);
+			if (pixelStack == null) pixelStack = new Array(MAX_STACK_SIZE + 1);
+			
+			//  Initialize GIF data stream decoder.
+			data_size = readSingleByte();
+			clear = 1 << data_size;
+			end_of_information = clear + 1;
+			available = clear + 2;
+			old_code = NULL_CODE;
+			code_size = data_size + 1;
+			code_mask = (1 << code_size) - 1;
+			
+			for (code = 0; code < clear; code++) {
+				prefix[int(code)] = 0;
+				suffix[int(code)] = code;
+			}
+			
+			//  Decode GIF pixel stream.
+			datum = bits = count = first = top = pi = bi = 0;
+			
+			for (i = 0; i < npix;) {
+				if (top == 0) {
+					if (bits < code_size) {
+						//  Load bytes until there are enough bits for a code.
+						if (count == 0) {
+							// Read a new data block.
+							count = readBlock();
+							
+							if (count <= 0) {
+								break;
+							}
+							
+							bi = 0;
+						}
+						
+						datum += (int((block[int(bi)])) & 0xff) << bits;
+						bits += 8;
+						bi++;
+						count--;
+						continue;
+					}
+					
+					//  Get the next code.
+					code = datum & code_mask;
+					datum >>= code_size;
+					bits -= code_size;
+					//  Interpret the code
+					if ((code > available) || (code == end_of_information)) {
+						break;
+					}
+					
+					if (code == clear) {
+						//  Reset decoder.
+						code_size = data_size + 1;
+						code_mask = (1 << code_size) - 1;
+						available = clear + 2;
+						old_code = NULL_CODE;
+						continue;
+					}
+					
+					if (old_code == NULL_CODE) {
+						pixelStack[int(top++)] = suffix[int(code)];
+						old_code = code;
+						first = code;
+						continue;
+					}
+					
+					in_code = code;
+					
+					if (code == available) {
+						pixelStack[int(top++)] = first;
+						code = old_code;
+					}
+					
+					while (code > clear) {
+						pixelStack[int(top++)] = suffix[int(code)];
+						code = prefix[int(code)];
+					}
+					
+					first = (suffix[int(code)]) & 0xff;
+					
+					//  Add a new string to the string table,
+					
+					if (available >= MAX_STACK_SIZE) {
+						break;
+					}
+					
+					pixelStack[int(top++)] = first;
+					prefix[int(available)] = old_code;
+					suffix[int(available)] = first;
+					available++;
+					
+					if (((available & code_mask) == 0) && (available < MAX_STACK_SIZE)) {
+						code_size++;
+						code_mask += available;
+					}
+					
+					old_code = in_code;
+				}
+				
+				//  Pop a pixel off the pixel stack.
+				
+				top--;
+				pixels[int(pi++)] = pixelStack[int(top)];
+				i++;
+			}
+			
+			for (i = pi; i < npix; i++) {
+				pixels[int(i)] = 0; // clear missing pixels
+			}
+			
+			///////
+			skip();
+			frameCount++;
+			bitmap = new BitmapData(size.width, size.height);
+			image = bitmap;
+			currentPhase = "transferPixels";
+		}
+		
+		private function transferPixels():void
+		{
+			// expose destination image's pixels as int array
+			var dest:Array = getPixels(bitmap);
+			// fill in starting image contents based on last image's dispose code
+			if (lastDispose > 0) {
+				if (lastDispose == 3) {
+					// use image before last
+					var n:int = frameCount - 2;
+					lastImage = n > 0 ? getFrame(n - 1).image : null;
+				}
+				
+				if (lastImage != null) {
+					var prev:Array = getPixels(lastImage);	
+					dest = prev.slice();
+					// copy pixels
+					if (lastDispose == 2) {
+						// fill last image rect area with background color
+						var c:Number;
+						// assume background is transparent
+						c = transparency ? 0x00000000 : lastBgColor;
+						// use given background color
+						image.fillRect(lastRect, c);
+					}
+				}
+			}
+			
+			// copy each source line to the appropriate place in the destination
+			var pass:int = 1;
+			var inc:int = 8;
+			var iline:int = 0;
+			
+			for (var i:int = 0; i < ih; i++) {
+				var line:int = i;
+				
+				if (interlace) {
+					if (iline >= ih) {
+						pass++;
+						
+						switch (pass) 
+						{
+							case 2 :
+								iline = 4;
+								break;
+							case 3 :
+								iline = 2;
+								inc = 4;
+								break;
+							case 4 :
+								iline = 1;
+								inc = 2;
+								break;
+						}
+					}
+					
+					line = iline;
+					iline += inc;
+				}
+				
+				line += iy;
+				
+				if (line < height) {
+					var k:int = line * width;
+					var dx:int = k + ix; // start of line in dest
+					var dlim:int = dx + iw; // end of dest line
+					var sx:int = i * iw; // start of line in source
+					var index:int;
+					var tmp:int;
+					
+					if ((k + width) < dlim) {
+						dlim = k + width; // past dest edge
+					}
+					
+					while (dx < dlim) {
+						// map color and insert in destination
+						index = (pixels[sx++]) & 0xff;
+						tmp = act[index];
+						
+						if (tmp != 0) {
+							dest[dx] = tmp;
+						}
+						
+						dx++;
+					}
+				}
+			}
+			
+			setPixels(dest);
+			
+			currentPhase = "pushFrame";
+		}
+		
+		/**
+		 * Creates new frame image from current data (and previous
+		 * frames as specified by their disposition codes).
+		 */
+		private function getPixels( bitmap:BitmapData ):Array
+		{	
+			var pixels:Array = new Array(4 * image.width * image.height);
+			var count:int = 0;
+			var lngWidth:int = image.width;
+			var lngHeight:int = image.height;
+			var color:int;
+			
+			for (var th:int = 0; th < lngHeight; th++) {
+				for (var tw:int = 0; tw < lngWidth; tw++) {
+					color = bitmap.getPixel (th, tw);
+					pixels[count++] = (color & 0xFF0000) >> 16;
+					pixels[count++] = (color & 0x00FF00) >> 8;
+					pixels[count++] = (color & 0x0000FF);
+				}
+			}
+			
+			return pixels;
+		}
+		
+		private function setPixels(pixels:Array):void
+		{
+			var count:int = 0;
+			var color:int;
+			var lngWidth:int = image.width;
+			var lngHeight:int = image.height;
+			
+			pixels.position = 0;
+			bitmap.lock();
+			
+			for (var th:int = 0; th < lngHeight; th++) {
+				for (var tw:int = 0; tw < lngWidth; tw++) {
+					color = pixels[count++];
+					bitmap.setPixel32(tw, th, color);
+				}
+			}
+			
+			bitmap.unlock();
+		}
+		
+		private function getFrame(n:int):GIFFrame
+		{
+			var im:GIFFrame = null;
+			
+			if ((n >= 0) && (n < frameCount)) {
+				im = frames[n];
+			} else {
+				throw new RangeError("Wrong frame number passed");
+			}
+			
+			return im;
+		}
+		
+		private function pushFrame():void
+		{
+			_frames.push(new GIFFrame(bitmap, delay, lastDispose)); // add image to frame list
+			
+			if (transparency) {
+				act[transIndex] = save;
+			}
+			
+			resetFrame();
+			currentPhase = "default";
+		}
+		
+		/**
+		 * Resets frame state for reading next image.
+		 */
+		private function resetFrame():void 
+		{
+			lastDispose = dispose;
+			lastRect = new Rectangle(ix, iy, iw, ih);
+			lastImage = image;
+			lastBgColor = bgColor;
+			// int dispose = 0;
+			var transparency:Boolean = false;
+			var delay:int = 0;
+			lct = null;
+		}
+		
+		//------------------------------------------
+		// HELPERS
 		
 		private function readSingleByte():uint
 		{
@@ -206,6 +747,51 @@ package com.jx.gif
 		private function readShort():int
 		{
 			return readSingleByte() | (readSingleByte() << 8);
+		}
+		
+		/**
+		 * Reads next variable length block from input.
+		 *
+		 * @return number of bytes stored in "buffer"
+		 */
+		private function readBlock():int
+		{
+			blockSize = readSingleByte();
+			
+			var n:int = 0;
+			
+			if (blockSize > 0) {
+				try {
+					var count:int = 0;
+					
+					while (n < blockSize) {
+						stream.readBytes(block, n, blockSize - n);
+						
+						if ((blockSize - n) == -1) {
+							break;
+						}
+						
+						n += (blockSize - n);
+					}
+				} catch (e:Error) { }
+				
+				if (n < blockSize) {
+					throw new Error("Format error.");
+				}
+			}
+			
+			return n;
+		}
+		
+		/**
+		 * Skips variable length blocks up to and including
+		 * next zero length block.
+		 */
+		private function skip():void
+		{
+			do {
+				readBlock();
+			} while (blockSize > 0);
 		}
 		
 		private function cleanUp():void

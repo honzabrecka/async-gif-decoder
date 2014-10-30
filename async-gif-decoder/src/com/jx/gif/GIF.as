@@ -33,7 +33,6 @@ package com.jx.gif
 		{
 			function complete(event:Event):void
 			{
-				dispatchEvent(event);
 				decode(loader.data);
 				destroy();
 			}
@@ -173,7 +172,7 @@ package com.jx.gif
 			{
 				decoder.removeEventListener(Event.COMPLETE, complete);
 				decoder.removeEventListener(ErrorEvent.ERROR, error);
-				decoder.dispose();
+				decoder.destroy();
 				decoder = null;
 			}
 			
