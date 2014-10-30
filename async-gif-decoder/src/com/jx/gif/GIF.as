@@ -177,7 +177,7 @@ package com.jx.gif
 				decoder = null;
 			}
 			
-			var decoder:Decoder = new Decoder();
+			var decoder:GIFDecoder = new GIFDecoder();
 				decoder.addEventListener(Event.COMPLETE, complete);
 				decoder.addEventListener(ErrorEvent.ERROR, error);
 				decoder.decode(stream);

@@ -2,7 +2,7 @@
 <flexLibProperties includeAllClasses="true" version="3">
   <includeClasses>
     <classEntry path="com.jx.gif.GIF"/>
-    <classEntry path="com.jx.gif.Decoder"/>
+    <classEntry path="com.jx.gif.GIFDecoder"/>
     <classEntry path="com.jx.gif.GIFFrame"/>
     <classEntry path="com.jx.gif.FunctionSequenceError"/>
   </includeClasses>

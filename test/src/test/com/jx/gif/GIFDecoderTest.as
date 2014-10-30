@@ -8,7 +8,7 @@
 
 package test.com.jx.gif
 {
-	import com.jx.gif.Decoder;
+	import com.jx.gif.GIFDecoder;
 	
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
@@ -19,15 +19,15 @@ package test.com.jx.gif
 	import org.flexunit.asserts.assertNull;
 	import org.flexunit.async.Async;
 
-	public class DecoderTest
+	public class GIFDecoderTest
 	{
 		
-		private var decoder:Decoder;
+		private var decoder:GIFDecoder;
 		
 		[Before]
 		public function setUp():void
 		{
-			decoder = new Decoder();
+			decoder = new GIFDecoder();
 		}
 		
 		[After]

@@ -14,7 +14,7 @@ package com.jx.gif
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
-	public class Decoder extends Sprite
+	public class GIFDecoder extends Sprite
 	{
 		
 		private var stream:ByteArray;
@@ -37,7 +37,7 @@ package com.jx.gif
 		
 		private var cachedSize:Rectangle;
 		
-		public function Decoder() { }
+		public function GIFDecoder() { }
 		
 		public function decode(stream:ByteArray):void
 		{

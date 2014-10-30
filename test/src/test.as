@@ -15,7 +15,7 @@ package
 	import org.flexunit.listeners.CIListener;
 	import org.flexunit.runner.FlexUnitCore;
 	
-	import test.com.jx.gif.DecoderTest;
+	import test.com.jx.gif.GIFDecoderTest;
 	import test.com.jx.gif.GIFFrameTest;
 	import test.com.jx.gif.GIFTest;
 	
@@ -39,7 +39,7 @@ package
 				flexUnit.addListener(new TraceListener());
 				flexUnit.addListener(new CIListener());
 				flexUnit.run(
-					DecoderTest,
+					GIFDecoderTest,
 					GIFFrameTest,
 					GIFTest
 				);
