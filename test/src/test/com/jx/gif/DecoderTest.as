@@ -10,8 +10,13 @@ package test.com.jx.gif
 {
 	import com.jx.gif.Decoder;
 	
+	import flash.events.ErrorEvent;
+	import flash.events.Event;
+	import flash.utils.ByteArray;
+	
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertNull;
+	import org.flexunit.async.Async;
 
 	public class DecoderTest
 	{
@@ -40,6 +45,20 @@ package test.com.jx.gif
 		public function size():void
 		{
 			assertNull(decoder.size);
+		}
+		
+		[Test(async)]
+		public function decode():void
+		{
+			Async.handleEvent(this, decoder, Event.COMPLETE, null);
+			decoder.decode(new ByteArray());
+		}
+		
+		[Test(async)]
+		public function decodeNull():void
+		{
+			Async.handleEvent(this, decoder, ErrorEvent.ERROR, null);
+			decoder.decode(null);
 		}
 		
 	}

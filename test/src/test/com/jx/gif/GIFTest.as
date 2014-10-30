@@ -9,6 +9,12 @@
 package test.com.jx.gif
 {
 	import com.jx.gif.GIF;
+	
+	import flash.events.Event;
+	import flash.events.IOErrorEvent;
+	import flash.net.URLRequest;
+	
+	import org.flexunit.async.Async;
 
 	public class GIFTest
 	{
@@ -110,6 +116,20 @@ package test.com.jx.gif
 		public function callPrevSceneBeforeLoad():void
 		{
 			gif.prevScene();
+		}
+		
+		[Test(async)]
+		public function unexistingFile():void
+		{
+			Async.handleEvent(this, gif, IOErrorEvent.IO_ERROR, null);
+			gif.load(new URLRequest("../fixtures/unexisting.gif"));
+		}
+		
+		[Test(async)]
+		public function existingFile():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, null);
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
 		
 	}

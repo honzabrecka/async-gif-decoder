@@ -8,6 +8,8 @@
 
 package com.jx.gif
 {
+	import flash.events.ErrorEvent;
+	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
@@ -21,7 +23,13 @@ package com.jx.gif
 		
 		public function decode(stream:ByteArray):void
 		{
+			if (!stream) {
+				dispatchError("Stream can't be null.");
+				return;
+			}
+			
 			this.stream = stream;
+			dispatchEvent(new Event(Event.COMPLETE));
 		}
 		
 		public function dispose():void
@@ -42,6 +50,11 @@ package com.jx.gif
 		public function get size():Rectangle
 		{
 			return null;
+		}
+		
+		private function dispatchError(message:String):void
+		{
+			dispatchEvent(new ErrorEvent(ErrorEvent.ERROR, false, false, message));
 		}
 		
 	}
