@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+
+Build swc and test it against unit tests.
+
+@usage $ ant -Dflexsdk <path-to-flex-sdk> -Dflexunit <path-to-flexunit-ant-tasks> -Djflashplayer <path-to-flash-player-debugger>
+@author Jan Břečka
+
+-->
+<project name="project" default="main" basedir=".">
+    
+    <target name="main" depends="clean, compile, test"/>
+
+    <property name="FLEX_HOME" value="D:/sdks/flex/4.6.0"/>
+    <property name="FLEXUNIT" value="D:/sdks/flexunit"/>
+    <property name="FLASHPLAYER" value="D:/sdks/flex/4.6.0/runtimes/player/11.4/win/FlashPlayerDebugger.exe"/>
+    <property name="project.dir" value="${basedir}/async-gif-decoder"/>
+    <property name="tests.dir" value="${basedir}/test"/>
+    <property name="BUILD.dir" value="${basedir}/build"/>
+
+    <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
+
+    <taskdef resource="flexUnitTasks.tasks">
+        <classpath>
+            <fileset dir="${FLEXUNIT}">
+                <include name="flexUnitTasks*.jar"/>
+            </fileset>
+        </classpath>
+    </taskdef>
+
+    <target name="clean">
+        <delete dir="${BUILD.dir}"/>
+        <mkdir dir="${BUILD.dir}"/>
+    </target>
+
+    <target name="compile">
+        <compc output="${BUILD.dir}/async-gif-decoder.swc" failonerror="true"
+            debug="false"
+            warnings="true"
+            optimize="true"
+            maxmemory="1024m">
+            <source-path path-element="${project.dir}/src"/>
+            <include-sources dir="${project.dir}/src" includes="*"/>
+        </compc>
+    </target>
+
+    <target name="test">
+        <mxmlc file="${tests.dir}/src/test.as" failonerror="true"
+            output="${tests.dir}/bin-debug/test.swf"
+            verbose-stacktraces="true"
+            static-link-runtime-shared-libraries="true">
+            <library-path dir="${tests.dir}/libs"
+                includes="*"
+                append="true"/>
+            <library-path dir="${FLEX_HOME}"
+                append="true">
+                <include name="frameworks/libs"/>
+            </library-path>
+            <library-path file="${BUILD.dir}/async-gif-decoder.swc" append="true"/>
+        </mxmlc>
+
+        <flexunit swf="${tests.dir}/bin-debug/test.swf"
+            toDir="${BUILD.dir}"
+            haltonfailure="false"
+            failureproperty="flexunit.failure"
+            verbose="true"
+            localTrusted="true"
+            command="${FLASHPLAYER}"
+            display="99"/>
+
+        <junitreport todir="${BUILD.dir}">
+            <fileset dir="${BUILD.dir}">
+                <include name="TEST-*.xml"/>
+            </fileset>
+            <report format="frames"
+                todir="${BUILD.dir}/html"/>
+        </junitreport>
+
+        <fail if="flexunit.failure" message="FlexUnit test(s) failed."/>
+    </target>
+
+</project>

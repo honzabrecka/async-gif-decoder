@@ -1,0 +1,20 @@
+# Project build and release directories
+target/
+bin/
+bin-debug/
+bin-release/
+asdoc-output/
+html-template/
+
+# Eclipse/Flex/Flash Builder project files
+.settings/
+.classpath
+.metadata/
+
+# Mac OS
+*.DS_Store
+
+test/libs/
+
+# ant
+build/
