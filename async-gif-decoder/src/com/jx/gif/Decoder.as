@@ -26,10 +26,14 @@ package com.jx.gif
 		private var gctFlag:Boolean;
 		/** size of global color table */
 		private var gctSize:int;
+		/** background color */
+		private var bgColor:int;
 		/** background color index */
 		private var bgIndex:int;
 		/** pixel aspect ratio */
 		private var pixelAspect:int;
+		/** global color table */
+		private var gct:Vector.<uint>;
 		
 		private var cachedSize:Rectangle;
 		
@@ -84,6 +88,11 @@ package com.jx.gif
 		{
 			checkFileType();
 			readLSD();
+			
+			if (gctFlag) {
+				gct = readColorTable(gctSize);
+				bgColor = gct[bgIndex];
+			}
 		}
 		
 		private function checkFileType():void
@@ -116,6 +125,46 @@ package com.jx.gif
 			gctSize = 2 << (packed & 7); // 6-8 : gct size
 			bgIndex = readSingleByte(); // background color index
 			pixelAspect = readSingleByte(); // pixel aspect ratio
+		}
+		
+		/**
+		 * Reads color table as 256 RGB integer values
+		 *
+		 * @param ncolors int number of colors to read
+		 * @return int array containing 256 colors (packed ARGB with full alpha)
+		 */
+		private function readColorTable(ncolors:int):Vector.<uint>
+		{
+			var nbytes:int = 3 * ncolors;
+			var tab:Vector.<uint>;
+			var c:ByteArray = new ByteArray;
+			var n:int = 0;
+			
+			try {
+				stream.readBytes(c, 0, nbytes);
+				n = nbytes;
+			} catch (e:Error) { }
+			
+			if (n < nbytes) {
+				throw new Error("Format error.");
+			} else {
+				tab = new Vector.<uint>(256, true); // max size to avoid bounds checks
+				
+				var i:int = 0;
+				var j:int = 0;
+				var r:int;
+				var g:int;
+				var b:int;
+				
+				while (i < ncolors) {
+					r = (c[j++]) & 0xff;
+					g = (c[j++]) & 0xff;
+					b = (c[j++]) & 0xff;
+					tab[i++] = (0xff000000 | (r << 16) | (g << 8) | b);
+				}
+			}
+			
+			return tab;
 		}
 		
 		private function enterFrameHandler(event:Event):void
