@@ -105,11 +105,19 @@ package com.jx.gif
 		override public function gotoAndPlay(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
+			
+			var index:uint = uint(frame);
+			
+			checkFrame(index);
 		}
 		
 		override public function gotoAndStop(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
+			
+			var index:uint = uint(frame);
+			
+			checkFrame(index);
 		}
 		
 		override public function nextFrame():void
@@ -180,6 +188,13 @@ package com.jx.gif
 				decoder.addEventListener(Event.COMPLETE, complete);
 				decoder.addEventListener(ErrorEvent.ERROR, error);
 				decoder.decode(stream);
+		}
+		
+		private function checkFrame(index:uint):void
+		{
+			if (index < 1 || index >= totalFrames) {
+				throw new RangeError("Frame out of range, please specify a frame between 1 and " + totalFrames + ".");
+			}
 		}
 		
 		private function resetFrames():void

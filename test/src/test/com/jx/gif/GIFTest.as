@@ -139,5 +139,25 @@ package test.com.jx.gif
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
 		
+		[Test(async, expects="RangeError")]
+		public function invalidGotoAndPlayIndex():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndPlay(0);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
+		}
+		
+		[Test(async, expects="RangeError")]
+		public function invalidGotoAndStopIndex():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndStop(2);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
+		}
+		
 	}
 }
