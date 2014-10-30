@@ -729,9 +729,6 @@ package com.jx.gif
 			lastRect = new Rectangle(ix, iy, iw, ih);
 			lastImage = image;
 			lastBgColor = bgColor;
-			// int dispose = 0;
-			var transparency:Boolean = false;
-			var delay:int = 0;
 			lct = null;
 		}
 		
