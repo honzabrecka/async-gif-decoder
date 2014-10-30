@@ -13,10 +13,12 @@ package com.jx.gif
 	import flash.events.Event;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
+	import flash.utils.getTimer;
 	
 	public class GIFDecoder extends Sprite
 	{
 		
+		private var frameTime:uint;
 		private var stream:ByteArray;
 		
 		private var w:uint;
@@ -37,7 +39,10 @@ package com.jx.gif
 		
 		private var cachedSize:Rectangle;
 		
-		public function GIFDecoder() { }
+		public function GIFDecoder(frameTime:uint=24)
+		{
+			this.frameTime = frameTime == 0 ? 1 : frameTime;
+		}
 		
 		public function decode(stream:ByteArray):void
 		{
@@ -176,6 +181,18 @@ package com.jx.gif
 		}
 		
 		private function decodeBody():Boolean
+		{
+			var isComplete:Boolean = false;
+			var endTime:uint = getTimer() + frameTime;
+			
+			while (!isComplete && endTime > getTimer()) {
+				isComplete = decodeBlock();
+			}
+			
+			return isComplete;
+		}
+		
+		private function decodeBlock():Boolean
 		{
 			return true;
 		}
