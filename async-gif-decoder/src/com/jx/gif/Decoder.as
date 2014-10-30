@@ -53,7 +53,7 @@ package com.jx.gif
 		
 		public function dispose():void
 		{
-			
+			cleanUp();
 		}
 		
 		public function get frames():Vector.<GIFFrame>
@@ -148,7 +148,7 @@ package com.jx.gif
 			if (n < nbytes) {
 				throw new Error("Format error.");
 			} else {
-				tab = new Vector.<uint>(256, true); // max size to avoid bounds checks
+				tab = new Vector.<uint>(256, true);// max size to avoid bounds checks
 				
 				var i:int = 0;
 				var j:int = 0;
@@ -169,10 +169,16 @@ package com.jx.gif
 		
 		private function enterFrameHandler(event:Event):void
 		{
-			removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
-			dispatchEvent(new Event(Event.COMPLETE));
+			if (decodeBody()) {
+				cleanUp();
+				dispatchEvent(new Event(Event.COMPLETE));
+			}
 		}
 		
+		private function decodeBody():Boolean
+		{
+			return true;
+		}
 		
 		private function readSingleByte():uint
 		{
@@ -183,6 +189,11 @@ package com.jx.gif
 		private function readShort():int
 		{
 			return readSingleByte() | (readSingleByte() << 8);
+		}
+		
+		private function cleanUp():void
+		{
+			removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
 		}
 		
 	}
