@@ -19,13 +19,19 @@ package com.jx.gif
 	public class GIFDecoder extends Sprite
 	{
 		
+		// phases
+		private static const READING_STREAM:uint = 0;
+		private static const DECODING_IMAGE:uint = 1;
+		private static const TRANSFERING_PIXELS:uint = 2;
+		private static const PUSHING_FRAME:uint = 3;
+		
 		/** max decoder pixel stack size */
 		private static const MAX_STACK_SIZE:uint = 4096;
 		private static const NULL_CODE:int = -1;
 		
 		private var frameTime:uint;
 		private var stream:ByteArray;
-		private var currentPhase:String;
+		private var currentPhase:uint = READING_STREAM;
 		
 		/** global color table used */
 		private var gctFlag:Boolean;
@@ -261,15 +267,15 @@ package com.jx.gif
 		
 		private function decodeBlock():Boolean
 		{
-			if (currentPhase == "decodingImage") {
+			if (currentPhase == DECODING_IMAGE) {
 				decodeImageData();
 				return false;
 			}
-			if (currentPhase == "transferPixels") {
+			if (currentPhase == TRANSFERING_PIXELS) {
 				transferPixels();
 				return false;
 			}
-			if (currentPhase == "pushFrame") {
+			if (currentPhase == PUSHING_FRAME) {
 				pushFrame();
 				return false;
 			}
@@ -407,7 +413,7 @@ package com.jx.gif
 				throw new Error("Format error."); // no color table defined
 			}
 			
-			currentPhase = "decodingImage";
+			currentPhase = DECODING_IMAGE;
 		}
 		
 		/**
@@ -556,7 +562,7 @@ package com.jx.gif
 			frameCount++;
 			bitmap = new BitmapData(size.width, size.height);
 			image = bitmap;
-			currentPhase = "transferPixels";
+			currentPhase = TRANSFERING_PIXELS;
 		}
 		
 		private function transferPixels():void
@@ -648,7 +654,7 @@ package com.jx.gif
 			
 			setPixels(dest);
 			
-			currentPhase = "pushFrame";
+			currentPhase = PUSHING_FRAME;
 		}
 		
 		/**
@@ -717,7 +723,7 @@ package com.jx.gif
 			}
 			
 			resetFrame();
-			currentPhase = null;
+			currentPhase = READING_STREAM;
 		}
 		
 		/**
