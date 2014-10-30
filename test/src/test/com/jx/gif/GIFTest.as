@@ -14,6 +14,7 @@ package test.com.jx.gif
 	import flash.events.IOErrorEvent;
 	import flash.net.URLRequest;
 	
+	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.async.Async;
 
 	public class GIFTest
@@ -128,7 +129,13 @@ package test.com.jx.gif
 		[Test(async)]
 		public function existingFile():void
 		{
-			Async.handleEvent(this, gif, Event.COMPLETE, null);
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				assertEquals(1, gif.framesLoaded);
+				assertEquals(1, gif.totalFrames);
+				assertEquals(0, gif.currentFrame);
+				assertEquals("0", gif.currentFrameLabel);
+			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
 		
