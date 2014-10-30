@@ -178,9 +178,9 @@ package com.jx.gif
 			}
 			
 			var decoder:Decoder = new Decoder();
-			decoder.addEventListener(Event.COMPLETE, complete);
-			decoder.addEventListener(ErrorEvent.ERROR, error);
-			decoder.decode(stream);
+				decoder.addEventListener(Event.COMPLETE, complete);
+				decoder.addEventListener(ErrorEvent.ERROR, error);
+				decoder.decode(stream);
 		}
 		
 		private function resetFrames():void
