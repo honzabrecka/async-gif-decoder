@@ -80,6 +80,7 @@ package test.com.jx.gif
 				assertEquals(1, size.width);
 				assertEquals(1, size.height);
 				assertEquals(1, decoder.frames.length);
+				assertEquals(16744448, decoder.frames[0].image.getPixel(0, 0));
 			});
 			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
 		}

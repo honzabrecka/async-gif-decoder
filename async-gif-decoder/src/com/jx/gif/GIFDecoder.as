@@ -46,11 +46,11 @@ package com.jx.gif
 		/** pixel aspect ratio */
 		private var pixelAspect:int;
 		/** global color table */
-		private var gct:Vector.<uint>;
+		private var gct:Vector.<int>;
 		/** local color table */
-		private var lct:Vector.<uint>;
+		private var lct:Vector.<int>;
 		/** active color table */
-		private var act:Vector.<uint>;
+		private var act:Vector.<int>;
 		/** current data block */
 		private var block:ByteArray;
 		/** current block size */
@@ -162,7 +162,7 @@ package com.jx.gif
 		private function checkFileType():void
 		{
 			var id:String = "";
-			var byte:uint;
+			var byte:int;
 			
 			for (var i:uint = 0; i < 6; i++) {
 				byte = readSingleByte();
@@ -177,10 +177,10 @@ package com.jx.gif
 		private function readLSD():void
 		{
 			// logical screen size
-			var width:uint = readShort();
-			var height:uint = readShort();
+			var width:int = readShort();
+			var height:int = readShort();
 			// packed fields
-			var packed:uint = readSingleByte();
+			var packed:int = readSingleByte();
 			
 			cachedSize = new Rectangle(0, 0, width, height);
 			gctFlag = (packed & 0x80) != 0; // 1   : global color table flag
@@ -197,10 +197,10 @@ package com.jx.gif
 		 * @param ncolors int number of colors to read
 		 * @return int array containing 256 colors (packed ARGB with full alpha)
 		 */
-		private function readColorTable(ncolors:int):Vector.<uint>
+		private function readColorTable(ncolors:int):Vector.<int>
 		{
 			var nbytes:int = 3 * ncolors;
-			var tab:Vector.<uint>;
+			var tab:Vector.<int>;
 			var c:ByteArray = new ByteArray;
 			var n:int = 0;
 			
@@ -212,7 +212,7 @@ package com.jx.gif
 			if (n < nbytes) {
 				throw new Error("Format error.");
 			} else {
-				tab = new Vector.<uint>(256, true);// max size to avoid bounds checks
+				tab = new Vector.<int>(256, true);// max size to avoid bounds checks
 				
 				var i:int = 0;
 				var j:int = 0;
@@ -275,7 +275,7 @@ package com.jx.gif
 			}
 			
 			var isComplete:Boolean = false;
-			var byte:uint = readSingleByte();
+			var byte:int = readSingleByte();
 			
 			switch (byte) {
 				case 0x2C: // image separator
@@ -303,7 +303,7 @@ package com.jx.gif
 		
 		private function readApplicationExtension():void
 		{
-			var byte:uint = readSingleByte();
+			var byte:int = readSingleByte();
 			
 			switch (byte) {
 				case 0xf9: // graphics control extension
@@ -620,16 +620,16 @@ package com.jx.gif
 				
 				line += iy;
 				
-				if (line < height) {
-					var k:int = line * width;
+				if (line < size.height) {
+					var k:int = line * size.width;
 					var dx:int = k + ix; // start of line in dest
 					var dlim:int = dx + iw; // end of dest line
 					var sx:int = i * iw; // start of line in source
 					var index:int;
 					var tmp:int;
 					
-					if ((k + width) < dlim) {
-						dlim = k + width; // past dest edge
+					if ((k + size.width) < dlim) {
+						dlim = k + size.width; // past dest edge
 					}
 					
 					while (dx < dlim) {
@@ -717,7 +717,7 @@ package com.jx.gif
 			}
 			
 			resetFrame();
-			currentPhase = "default";
+			currentPhase = null;
 		}
 		
 		/**
@@ -738,7 +738,7 @@ package com.jx.gif
 		//------------------------------------------
 		// HELPERS
 		
-		private function readSingleByte():uint
+		private function readSingleByte():int
 		{
 			return stream.readUnsignedByte();
 		}
