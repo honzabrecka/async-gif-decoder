@@ -81,6 +81,69 @@ package test.com.jx.gif
 				assertEquals(1, size.height);
 				assertEquals(1, decoder.frames.length);
 				assertEquals(16744448, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(0, decoder.loopCount);
+				assertEquals(0, decoder.frames[0].delay);
+				assertEquals(0, decoder.frames[0].dispose);
+			});
+			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
+		}
+		
+		[Test(async)]
+		public function decodeTransparent():void
+		{
+			Async.handleEvent(this, decoder, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				var size:Rectangle = decoder.size;
+				assertEquals(0, size.x);
+				assertEquals(0, size.y);
+				assertEquals(1, size.width);
+				assertEquals(1, size.height);
+				assertEquals(1, decoder.frames.length);
+				assertEquals(0, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(0, decoder.loopCount);
+				assertEquals(0, decoder.frames[0].delay);
+				assertEquals(0, decoder.frames[0].dispose);
+			});
+			decoder.decode(new Fixtures.GIF_1x1_transparent() as ByteArray);
+		}
+		
+		[Test(async)]
+		public function decodeAnimated():void
+		{
+			Async.handleEvent(this, decoder, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				var size:Rectangle = decoder.size;
+				assertEquals(0, size.x);
+				assertEquals(0, size.y);
+				assertEquals(28, size.width);
+				assertEquals(50, size.height);
+				assertEquals(12, decoder.frames.length);
+				assertEquals(0, decoder.loopCount);
+				
+				assertEquals(0, decoder.frames[0].delay);
+				assertEquals(0, decoder.frames[0].dispose);
+				assertEquals(60, decoder.frames[1].delay);
+				assertEquals(0, decoder.frames[1].dispose);
+			});
+			decoder.decode(new Fixtures.GIF_animated() as ByteArray);
+		}
+		
+		[Test(async)]
+		public function zeroFrameTime():void
+		{
+			decoder = new GIFDecoder(0);
+			Async.handleEvent(this, decoder, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				var size:Rectangle = decoder.size;
+				assertEquals(0, size.x);
+				assertEquals(0, size.y);
+				assertEquals(1, size.width);
+				assertEquals(1, size.height);
+				assertEquals(1, decoder.frames.length);
+				assertEquals(16744448, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(0, decoder.loopCount);
+				assertEquals(0, decoder.frames[0].delay);
+				assertEquals(0, decoder.frames[0].dispose);
 			});
 			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
 		}

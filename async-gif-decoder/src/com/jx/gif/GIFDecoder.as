@@ -72,7 +72,7 @@ package com.jx.gif
 		/** transparent color index */
 		private var transIndex:int;
 		/** iterations; 0 = repeat forever */
-		private var _loopCount:int = 1;
+		private var _loopCount:int = 0;
 		/** current frame position&size */
 		private var ix:int;
 		private var iy:int;
@@ -125,7 +125,7 @@ package com.jx.gif
 		
 		public function get loopCount():uint
 		{
-			return 0;
+			return _loopCount;
 		}
 		
 		public function get size():Rectangle
