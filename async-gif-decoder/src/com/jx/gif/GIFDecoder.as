@@ -1,6 +1,14 @@
 // -----------------------------------------------------------------------
 //  async-gif-decoder
 //  Copyright 2014 Jan Břečka. All Rights Reserved.
+//	
+//	Based on:
+//	 - http://www.java2s.com/Code/Java/2D-Graphics-GUI/GiffileEncoder.htm
+//	 - http://code.google.com/p/as3gif/
+//	
+//	@author Kevin Weiner (original Java version - kweiner@fmsware.com)
+//	@author Thibault Imbert (original AS3 version - bytearray.org)
+//	@author Jan Břečka (non-blocking AS3 version)
 //
 //  This program is free software. You can redistribute and/or modify it
 //  in accordance with the terms of the accompanying license agreement.
