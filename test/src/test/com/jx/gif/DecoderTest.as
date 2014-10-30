@@ -12,6 +12,7 @@ package test.com.jx.gif
 	
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
+	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
 	
 	import org.flexunit.asserts.assertEquals;
@@ -29,6 +30,13 @@ package test.com.jx.gif
 			decoder = new Decoder();
 		}
 		
+		[After]
+		public function tearDown():void
+		{
+			decoder.dispose();
+			decoder = null;
+		}
+		
 		[Test]
 		public function frames():void
 		{
@@ -44,7 +52,11 @@ package test.com.jx.gif
 		[Test]
 		public function size():void
 		{
-			assertNull(decoder.size);
+			var size:Rectangle = decoder.size;
+			assertEquals(0, size.x);
+			assertEquals(0, size.y);
+			assertEquals(0, size.width);
+			assertEquals(0, size.height);
 		}
 		
 		[Test(async)]
@@ -64,7 +76,14 @@ package test.com.jx.gif
 		[Test(async)]
 		public function decode():void
 		{
-			Async.handleEvent(this, decoder, Event.COMPLETE, null);
+			Async.handleEvent(this, decoder, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				var size:Rectangle = decoder.size;
+				assertEquals(0, size.x);
+				assertEquals(0, size.y);
+				assertEquals(1, size.width);
+				assertEquals(1, size.height);
+			});
 			decoder.decode(new Fixtures.GIF_1x1_orange() as ByteArray);
 		}
 		

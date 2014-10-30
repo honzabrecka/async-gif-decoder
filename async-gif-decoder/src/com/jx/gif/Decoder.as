@@ -19,6 +19,20 @@ package com.jx.gif
 		
 		private var stream:ByteArray;
 		
+		private var w:uint;
+		private var h:uint;
+		
+		/** global color table used */
+		private var gctFlag:Boolean;
+		/** size of global color table */
+		private var gctSize:int;
+		/** background color index */
+		private var bgIndex:int;
+		/** pixel aspect ratio */
+		private var pixelAspect:int;
+		
+		private var cachedSize:Rectangle;
+		
 		public function Decoder() { }
 		
 		public function decode(stream:ByteArray):void
@@ -50,7 +64,8 @@ package com.jx.gif
 		
 		public function get size():Rectangle
 		{
-			return null;
+			cachedSize ||= new Rectangle(0, 0, w, h);
+			return cachedSize;
 		}
 		
 		private function dispatchError(message:String):void
@@ -67,6 +82,12 @@ package com.jx.gif
 		
 		private function decodeHead():void
 		{
+			checkFileType();
+			readLSD();
+		}
+		
+		private function checkFileType():void
+		{
 			var id:String = "";
 			var byte:uint;
 			
@@ -80,6 +101,23 @@ package com.jx.gif
 			}
 		}
 		
+		private function readLSD():void
+		{
+			// logical screen size
+			w = readShort();
+			h = readShort();
+			
+			// packed fields
+			var packed:uint = readSingleByte();
+			
+			gctFlag = (packed & 0x80) != 0; // 1   : global color table flag
+			// 2-4 : color resolution
+			// 5   : gct sort flag
+			gctSize = 2 << (packed & 7); // 6-8 : gct size
+			bgIndex = readSingleByte(); // background color index
+			pixelAspect = readSingleByte(); // pixel aspect ratio
+		}
+		
 		private function enterFrameHandler(event:Event):void
 		{
 			removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
@@ -90,6 +128,12 @@ package com.jx.gif
 		private function readSingleByte():uint
 		{
 			return stream.readUnsignedByte();
+		}
+		
+		/** Reads next 16-bit value, LSB first */
+		private function readShort():int
+		{
+			return readSingleByte() | (readSingleByte() << 8);
 		}
 		
 	}
