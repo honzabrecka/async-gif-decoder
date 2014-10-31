@@ -27,11 +27,11 @@ package test.com.jx.gif
 		}
 		
 		[Test]
-		public function image():void
+		public function bitmapData():void
 		{
-			assertNotNull(frame.image);
-			assertEquals(1, frame.image.width);
-			assertEquals(1, frame.image.height);
+			assertNotNull(frame.bitmapData);
+			assertEquals(1, frame.bitmapData.width);
+			assertEquals(1, frame.bitmapData.height);
 		}
 		
 		[Test]

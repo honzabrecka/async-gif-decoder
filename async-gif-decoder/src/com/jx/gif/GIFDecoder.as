@@ -582,7 +582,7 @@ package com.jx.gif
 				if (lastDispose == 3) {
 					// use image before last
 					var n:int = frameCount - 2;
-					lastImage = n > 0 ? getFrame(n - 1).image : null;
+					lastImage = n > 0 ? getFrame(n - 1).bitmapData : null;
 				}
 				
 				if (lastImage != null) {

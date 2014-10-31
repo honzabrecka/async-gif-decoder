@@ -13,20 +13,20 @@ package com.jx.gif
 	public class GIFFrame
 	{
 		
-		private var _image:BitmapData;
+		private var _bitmapData:BitmapData;
 		private var _delay:uint;
 		private var _dispose:uint;
 		
-		public function GIFFrame(image:BitmapData, delay:uint, dispose:uint)
+		public function GIFFrame(bitmapData:BitmapData, delay:uint, dispose:uint)
 		{
-			_image = image;
+			_bitmapData = bitmapData;
 			_delay = delay;
 			_dispose = dispose;
 		}
 		
-		public function get image():BitmapData
+		public function get bitmapData():BitmapData
 		{
-			return _image;
+			return _bitmapData;
 		}
 		
 		public function get delay():uint

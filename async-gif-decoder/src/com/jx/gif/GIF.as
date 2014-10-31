@@ -69,7 +69,39 @@ package com.jx.gif
 		
 		public function unload():void
 		{
-			resetFrames();
+			function clearCachedBitmapData():void
+			{
+				cachedBitmapData = null;
+			}
+			
+			function clearFrames():void
+			{
+				while (_frames && _frames.length > 0) {
+					_frames.pop();
+				}
+				_frames = null;
+			}
+			
+			function clearTimer():void
+			{
+				if (timer) {
+					timer.removeEventListener(TimerEvent.TIMER, timer_tickHandler);
+					timer = null;
+				}
+			}
+			
+			function clearBitmap():void
+			{
+				if (bitmap) {
+					removeChild(bitmap);
+					bitmap = null;
+				}
+			}
+			
+			clearFrames();
+			clearCachedBitmapData();
+			clearTimer();
+			clearBitmap();
 			_currentFrame = -1;
 		}
 		
@@ -93,7 +125,7 @@ package com.jx.gif
 		
 		override public function get currentScene():Scene
 		{
-			hasBeenLoaded();
+			throw new IllegalOperationError("Method is not implemented.");
 			return null;
 		}
 		
@@ -119,7 +151,7 @@ package com.jx.gif
 		{
 			hasBeenLoaded();
 			_currentFrame = checkFrame(uint(frame));
-			draw(_currentFrame);
+			draw();
 			play();
 		}
 		
@@ -127,7 +159,7 @@ package com.jx.gif
 		{
 			hasBeenLoaded();
 			_currentFrame = checkFrame(uint(frame));
-			draw(_currentFrame);
+			draw();
 			stop();
 		}
 		
@@ -135,7 +167,7 @@ package com.jx.gif
 		{
 			hasBeenLoaded();
 			_currentFrame = (_currentFrame + 1) % totalFrames;
-			draw(_currentFrame);
+			draw();
 		}
 		
 		override public function prevFrame():void
@@ -143,7 +175,7 @@ package com.jx.gif
 			hasBeenLoaded();
 			_currentFrame--;
 			if (_currentFrame == -1) _currentFrame = totalFrames - 1;
-			draw(_currentFrame);
+			draw();
 		}
 		
 		override public function play():void
@@ -192,7 +224,7 @@ package com.jx.gif
 				timer = new Timer(0, 0);
 				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
 				cacheBitmapData(decoder.size.width, decoder.size.height);
-				draw(0);
+				draw();
 				dispatchEvent(event);
 				destroy();
 			}
@@ -226,19 +258,11 @@ package com.jx.gif
 			return index - 1;
 		}
 		
-		private function resetFrames():void
+		private function draw():void
 		{
-			while (_frames && _frames.length > 0) {
-				_frames.pop();
-			}
-			
-			_frames = null;
-		}
-		
-		private function draw(frame:uint):void
-		{
-			timer.delay = _frames[frame].delay == 0 ? 100 : _frames[frame].delay;
-			bitmap.bitmapData = cachedBitmapData[frame];
+			var frame:GIFFrame = frames[currentFrame];
+			timer.delay = frame.delay == 0 ? 100 : frame.delay;
+			bitmap.bitmapData = cachedBitmapData[currentFrame];
 		}
 		
 		private function timer_tickHandler(event:TimerEvent):void
@@ -254,12 +278,12 @@ package com.jx.gif
 			
 			for (var i:uint = 0; i < totalFrames; i++) {
 				if (_frames[i].dispose == 1) {
-					bitmapData.draw(_frames[i].image);
+					bitmapData.draw(_frames[i].bitmapData);
 				} else if (_frames[i].dispose == 3) {
-					bitmapData = _frames[0].image.clone();
-					bitmapData.draw(_frames[i].image);
+					bitmapData = _frames[0].bitmapData.clone();
+					bitmapData.draw(_frames[i].bitmapData);
 				} else {
-					bitmapData = _frames[i].image.clone();
+					bitmapData = _frames[i].bitmapData.clone();
 				}
 				
 				cachedBitmapData[i] = bitmapData.clone();

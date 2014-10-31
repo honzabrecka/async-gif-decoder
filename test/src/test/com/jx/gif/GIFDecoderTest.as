@@ -80,7 +80,7 @@ package test.com.jx.gif
 				assertEquals(1, size.width);
 				assertEquals(1, size.height);
 				assertEquals(1, decoder.frames.length);
-				assertEquals(16744448, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(16744448, decoder.frames[0].bitmapData.getPixel(0, 0));
 				assertEquals(0, decoder.loopCount);
 				assertEquals(0, decoder.frames[0].delay);
 				assertEquals(0, decoder.frames[0].dispose);
@@ -99,7 +99,7 @@ package test.com.jx.gif
 				assertEquals(1, size.width);
 				assertEquals(1, size.height);
 				assertEquals(1, decoder.frames.length);
-				assertEquals(0, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(0, decoder.frames[0].bitmapData.getPixel(0, 0));
 				assertEquals(0, decoder.loopCount);
 				assertEquals(0, decoder.frames[0].delay);
 				assertEquals(0, decoder.frames[0].dispose);
@@ -146,7 +146,7 @@ package test.com.jx.gif
 				assertEquals(1, size.width);
 				assertEquals(1, size.height);
 				assertEquals(1, decoder.frames.length);
-				assertEquals(16744448, decoder.frames[0].image.getPixel(0, 0));
+				assertEquals(16744448, decoder.frames[0].bitmapData.getPixel(0, 0));
 				assertEquals(0, decoder.loopCount);
 				assertEquals(0, decoder.frames[0].delay);
 				assertEquals(0, decoder.frames[0].dispose);

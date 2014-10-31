@@ -51,12 +51,6 @@ package test.com.jx.gif
 		}
 		
 		[Test(expects="com.jx.gif.FunctionSequenceError")]
-		public function callCurrentSceneBeforeLoad():void
-		{
-			gif.currentScene;
-		}
-		
-		[Test(expects="com.jx.gif.FunctionSequenceError")]
 		public function callFramesLoadedBeforeLoad():void
 		{
 			gif.framesLoaded;
@@ -110,22 +104,28 @@ package test.com.jx.gif
 			gif.stop();
 		}
 		
+		[Test(expects="com.jx.gif.FunctionSequenceError")]
+		public function callFramesBeforeLoad():void
+		{
+			gif.frames;
+		}
+		
 		[Test(expects="flash.errors.IllegalOperationError")]
-		public function callNextSceneBeforeLoad():void
+		public function nextScene():void
 		{
 			gif.nextScene();
 		}
 		
 		[Test(expects="flash.errors.IllegalOperationError")]
-		public function callPrevSceneBeforeLoad():void
+		public function prevScene():void
 		{
 			gif.prevScene();
 		}
 		
-		[Test(expects="com.jx.gif.FunctionSequenceError")]
-		public function callFramesBeforeLoad():void
+		[Test(expects="flash.errors.IllegalOperationError")]
+		public function currentScene():void
 		{
-			gif.frames;
+			gif.currentScene;
 		}
 		
 		[Test(async)]
