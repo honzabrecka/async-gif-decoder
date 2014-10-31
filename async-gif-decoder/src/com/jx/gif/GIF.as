@@ -69,6 +69,12 @@ package com.jx.gif
 			_currentFrame = -1;
 		}
 		
+		public function get frames():Vector.<GIFFrame>
+		{
+			hasBeenLoaded();
+			return _frames;
+		}
+		
 		override public function get currentFrame():int
 		{
 			hasBeenLoaded();

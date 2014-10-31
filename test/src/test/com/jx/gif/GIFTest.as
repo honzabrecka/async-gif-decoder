@@ -122,6 +122,12 @@ package test.com.jx.gif
 			gif.prevScene();
 		}
 		
+		[Test(expects="com.jx.gif.FunctionSequenceError")]
+		public function callFramesBeforeLoad():void
+		{
+			gif.frames;
+		}
+		
 		[Test(async)]
 		public function unexistingFile():void
 		{
@@ -139,6 +145,7 @@ package test.com.jx.gif
 				assertEquals(0, gif.currentFrame);
 				assertEquals("0", gif.currentFrameLabel);
 				assertEquals(16744448, drawToBitmapData(gif).getPixel(0, 0));
+				assertEquals(1, gif.frames.length);
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
