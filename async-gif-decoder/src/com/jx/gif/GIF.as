@@ -16,19 +16,21 @@ package com.jx.gif
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.SecurityErrorEvent;
+	import flash.events.TimerEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 	
 	public class GIF extends MovieClip
 	{
 		
 		private var _frames:Vector.<GIFFrame>;
 		private var _currentFrame:int = -1;
-		private var _isPlaying:Boolean;
 		
 		private var bitmap:Bitmap;
+		private var timer:Timer;
 		
 		public function GIF() { }
 		
@@ -108,7 +110,7 @@ package com.jx.gif
 		override public function get isPlaying():Boolean
 		{
 			hasBeenLoaded();
-			return _isPlaying;
+			return timer.running;
 		}
 		
 		override public function gotoAndPlay(frame:Object, scene:String=null):void
@@ -142,13 +144,19 @@ package com.jx.gif
 		override public function play():void
 		{
 			hasBeenLoaded();
-			_isPlaying = true;
+			
+			if (!isPlaying) {
+				timer.start();
+			}
 		}
 		
 		override public function stop():void
 		{
 			hasBeenLoaded();
-			_isPlaying = false;
+			
+			if (isPlaying) {
+				timer.stop();
+			}
 		}
 		
 		override public function nextScene():void
@@ -174,9 +182,10 @@ package com.jx.gif
 			{
 				_frames = decoder.frames;
 				_currentFrame = 0;
-				_isPlaying = false;
 				bitmap = new Bitmap();
 				addChild(bitmap);
+				timer = new Timer(0, 0);
+				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
 				draw(0);
 				dispatchEvent(event);
 				destroy();
@@ -220,7 +229,13 @@ package com.jx.gif
 		
 		private function draw(frame:uint):void
 		{
+			timer.delay = _frames[frame].delay;
 			bitmap.bitmapData = _frames[frame].image;
+		}
+		
+		private function timer_tickHandler(event:TimerEvent):void
+		{
+			nextFrame();
 		}
 		
 	}
