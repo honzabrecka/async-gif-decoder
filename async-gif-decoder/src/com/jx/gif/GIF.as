@@ -118,13 +118,17 @@ package com.jx.gif
 		override public function gotoAndPlay(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
-			var index:uint = checkFrame(uint(frame));
+			_currentFrame = checkFrame(uint(frame));
+			draw(_currentFrame);
+			play();
 		}
 		
 		override public function gotoAndStop(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
-			var index:uint = checkFrame(uint(frame));
+			_currentFrame = checkFrame(uint(frame));
+			draw(_currentFrame);
+			stop();
 		}
 		
 		override public function nextFrame():void
