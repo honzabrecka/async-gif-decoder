@@ -143,6 +143,9 @@ package com.jx.gif
 		override public function prevFrame():void
 		{
 			hasBeenLoaded();
+			_currentFrame--;
+			if (_currentFrame == -1) _currentFrame = totalFrames - 1;
+			draw(_currentFrame);
 		}
 		
 		override public function play():void
@@ -175,7 +178,7 @@ package com.jx.gif
 		
 		private function hasBeenLoaded():void
 		{
-			if (_currentFrame == -1) {
+			if (!timer) {
 				throw new FunctionSequenceError();
 			}
 		}
