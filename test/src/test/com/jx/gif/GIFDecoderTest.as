@@ -115,17 +115,23 @@ package test.com.jx.gif
 				var size:Rectangle = decoder.size;
 				assertEquals(0, size.x);
 				assertEquals(0, size.y);
-				assertEquals(28, size.width);
-				assertEquals(50, size.height);
-				assertEquals(12, decoder.frames.length);
+				assertEquals(72, size.width);
+				assertEquals(36, size.height);
+				assertEquals(5, decoder.frames.length);
 				assertEquals(0, decoder.loopCount);
 				
-				assertEquals(0, decoder.frames[0].delay);
+				assertEquals(500, decoder.frames[0].delay);
 				assertEquals(0, decoder.frames[0].dispose);
-				assertEquals(60, decoder.frames[1].delay);
-				assertEquals(0, decoder.frames[1].dispose);
+				assertEquals(500, decoder.frames[1].delay);
+				assertEquals(1, decoder.frames[1].dispose);
+				assertEquals(500, decoder.frames[2].delay);
+				assertEquals(1, decoder.frames[2].dispose);
+				assertEquals(500, decoder.frames[3].delay);
+				assertEquals(1, decoder.frames[3].dispose);
+				assertEquals(500, decoder.frames[4].delay);
+				assertEquals(1, decoder.frames[4].dispose);
 			});
-			decoder.decode(new Fixtures.GIF_animated() as ByteArray);
+			decoder.decode(new Fixtures.GIF_m1() as ByteArray);
 		}
 		
 		[Test(async)]
