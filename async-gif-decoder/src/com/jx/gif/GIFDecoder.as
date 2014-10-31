@@ -44,7 +44,7 @@ package com.jx.gif
 		
 		private var frameTime:uint;
 		private var stream:ByteArray;
-		private var currentPhase:uint = READING_STREAM;
+		private var currentPhase:uint;
 		
 		/** global color table used */
 		private var gctFlag:Boolean;
@@ -106,8 +106,7 @@ package com.jx.gif
 		
 		private var _frames:Vector.<GIFFrame>;
 		private var frameCount:int;
-		
-		private var cachedSize:Rectangle;
+		private var _size:Rectangle;
 		
 		public function GIFDecoder(frameTime:uint=24)
 		{
@@ -129,6 +128,11 @@ package com.jx.gif
 		public function destroy():void
 		{
 			cleanUp();
+			
+			if (stream) {
+				stream.clear();
+				stream = null;
+			}
 		}
 		
 		public function get frames():Vector.<GIFFrame>
@@ -143,7 +147,7 @@ package com.jx.gif
 		
 		public function get size():Rectangle
 		{
-			return cachedSize;
+			return _size;
 		}
 		
 		private function dispatchError(message:String):void
@@ -157,6 +161,7 @@ package com.jx.gif
 				throw new Error("Stream can't be null.");
 			}
 			
+			currentPhase = READING_STREAM;
 			block = new ByteArray();
 			frameCount = 0;
 			_frames = new Vector.<GIFFrame>();
@@ -201,7 +206,7 @@ package com.jx.gif
 			// packed fields
 			var packed:int = readSingleByte();
 			
-			cachedSize = new Rectangle(0, 0, width, height);
+			_size = new Rectangle(0, 0, width, height);
 			gctFlag = (packed & 0x80) != 0; // 1   : global color table flag
 			// 2-4 : color resolution
 			// 5   : gct sort flag
