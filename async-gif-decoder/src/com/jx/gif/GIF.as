@@ -85,6 +85,7 @@ package com.jx.gif
 			function clearTimer():void
 			{
 				if (timer) {
+					stop();
 					timer.removeEventListener(TimerEvent.TIMER, timer_tickHandler);
 					timer = null;
 				}
