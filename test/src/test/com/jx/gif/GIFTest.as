@@ -18,6 +18,7 @@ package test.com.jx.gif
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertFalse;
 	import org.flexunit.asserts.assertTrue;
+	import org.flexunit.asserts.fail;
 	import org.flexunit.async.Async;
 
 	public class GIFTest
@@ -166,6 +167,20 @@ package test.com.jx.gif
 			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
 			{
 				gif.gotoAndStop(2);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
+		}
+		
+		[Test(async)]
+		public function validGotoAndStopIndex():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				try {
+					gif.gotoAndStop(1);
+				} catch (error:RangeError) {
+					fail(error + " shouldn't be thrown.");
+				}
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
