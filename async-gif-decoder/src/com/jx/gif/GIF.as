@@ -232,7 +232,14 @@ package com.jx.gif
 		private function draw(frame:uint):void
 		{
 			timer.delay = _frames[frame].delay;
-			bitmap.bitmapData = _frames[frame].image;
+			
+			if (_frames[frame].dispose == 1) {
+				bitmap.bitmapData.draw(_frames[frame].image);
+			} else {
+				bitmap.bitmapData = _frames[frame].image.clone();
+			}
+			
+			
 		}
 		
 		private function timer_tickHandler(event:TimerEvent):void
