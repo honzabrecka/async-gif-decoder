@@ -235,6 +235,9 @@ package com.jx.gif
 			
 			if (_frames[frame].dispose == 1) {
 				bitmap.bitmapData.draw(_frames[frame].image);
+			} else if (_frames[frame].dispose == 3) {
+				bitmap.bitmapData = _frames[0].image.clone();
+				bitmap.bitmapData.draw(_frames[frame].image);
 			} else {
 				bitmap.bitmapData = _frames[frame].image.clone();
 			}
