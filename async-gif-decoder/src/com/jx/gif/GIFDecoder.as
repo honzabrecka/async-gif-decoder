@@ -29,9 +29,14 @@ package com.jx.gif
 		
 		// phases
 		private static const READING_STREAM:uint = 0;
-		private static const DECODING_IMAGE:uint = 1;
-		private static const TRANSFERING_PIXELS:uint = 2;
-		private static const PUSHING_FRAME:uint = 3;
+		private static const START_DECODING_IMAGE:uint = 1;
+		private static const DECODING_IMAGE:uint = 2;
+		private static const DECODING_IMAGE_DONE:uint = 3;
+		private static const GETTING_PIXELS:uint = 4;
+		private static const CHECK_LAST_DISPOSE:uint = 5;
+		private static const TRANSFERING_PIXELS:uint = 6;
+		private static const SETTING_PIXELS:uint = 7;
+		private static const PUSHING_FRAME:uint = 8;
 		
 		/** max decoder pixel stack size */
 		private static const MAX_STACK_SIZE:uint = 4096;
@@ -275,12 +280,32 @@ package com.jx.gif
 		
 		private function decodeBlock():Boolean
 		{
+			if (currentPhase == START_DECODING_IMAGE) {
+				startDecodingImageData();
+				return false;
+			}
 			if (currentPhase == DECODING_IMAGE) {
 				decodeImageData();
 				return false;
 			}
+			if (currentPhase == DECODING_IMAGE_DONE) {
+				decodeImageDataDone();
+				return false;
+			}
+			if (currentPhase == GETTING_PIXELS) {
+				getPixelsNB();
+				return false;
+			}
+			if (currentPhase == CHECK_LAST_DISPOSE) {
+				checkLastDispose();
+				return false;
+			}
 			if (currentPhase == TRANSFERING_PIXELS) {
 				transferPixels();
+				return false;
+			}
+			if (currentPhase == SETTING_PIXELS) {
+				setPixels(dest);
 				return false;
 			}
 			if (currentPhase == PUSHING_FRAME) {
@@ -421,33 +446,35 @@ package com.jx.gif
 				throw new Error("Format error."); // no color table defined
 			}
 			
-			currentPhase = DECODING_IMAGE;
+			currentPhase = START_DECODING_IMAGE;
 		}
+		
+		private var npix:int;
+		private var available:int;
+		private var clear:int;
+		private var code_mask:int;
+		private var code_size:int;
+		private var end_of_information:int;
+		private var in_code:int;
+		private var old_code:int;
+		private var bits:int;
+		private var code:int;
+		private var count:int;
+		private var i:int;
+		private var datum:int;
+		private var data_size:int;
+		private var first:int;
+		private var top:int;
+		private var bi:int;
+		private var pi:int;
 		
 		/**
 		 * Decodes LZW image data into pixel array.
 		 * Adapted from John Cristy's ImageMagick.
 		 */
-		private function decodeImageData():void
+		private function startDecodingImageData():void
 		{
-			var npix:int = iw * ih;
-			var available:int;
-			var clear:int;
-			var code_mask:int;
-			var code_size:int;
-			var end_of_information:int;
-			var in_code:int;
-			var old_code:int;
-			var bits:int;
-			var code:int;
-			var count:int;
-			var i:int;
-			var datum:int;
-			var data_size:int;
-			var first:int;
-			var top:int;
-			var bi:int;
-			var pi:int;
+			npix = iw * ih;
 			
 			if ((pixels == null) || (pixels.length < npix)) {
 				pixels = new Array ( npix ); // allocate new pixel array
@@ -473,8 +500,16 @@ package com.jx.gif
 			
 			//  Decode GIF pixel stream.
 			datum = bits = count = first = top = pi = bi = 0;
+			i = 0;
+			currentPhase = DECODING_IMAGE;
+		}
+		
+		private function decodeImageData():void
+		{
+			var to:uint = i + 64;
+			if (to > npix) to = npix;
 			
-			for (i = 0; i < npix;) {
+			for (; i < to;) {
 				if (top == 0) {
 					if (bits < code_size) {
 						//  Load bytes until there are enough bits for a code.
@@ -561,8 +596,15 @@ package com.jx.gif
 				i++;
 			}
 			
+			if (to == npix) {
+				currentPhase = DECODING_IMAGE_DONE;
+			}
+		}
+		
+		private function decodeImageDataDone():void
+		{
 			for (i = pi; i < npix; i++) {
-				pixels[int(i)] = 0; // clear missing pixels
+				pixels[i] = 0; // clear missing pixels
 			}
 			
 			///////
@@ -570,13 +612,20 @@ package com.jx.gif
 			frameCount++;
 			bitmap = new BitmapData(size.width, size.height);
 			image = bitmap;
-			currentPhase = TRANSFERING_PIXELS;
+			currentPhase = GETTING_PIXELS;
 		}
 		
-		private function transferPixels():void
+		private var dest:Array;
+		
+		private function getPixelsNB():void
 		{
 			// expose destination image's pixels as int array
-			var dest:Array = getPixels(bitmap);
+			dest = getPixels(bitmap);
+			currentPhase = CHECK_LAST_DISPOSE;
+		}
+		
+		private function checkLastDispose():void
+		{
 			// fill in starting image contents based on last image's dispose code
 			if (lastDispose > 0) {
 				if (lastDispose == 3) {
@@ -600,6 +649,11 @@ package com.jx.gif
 				}
 			}
 			
+			currentPhase = TRANSFERING_PIXELS;
+		}
+		
+		private function transferPixels():void
+		{
 			// copy each source line to the appropriate place in the destination
 			var pass:int = 1;
 			var inc:int = 8;
@@ -660,9 +714,7 @@ package com.jx.gif
 				}
 			}
 			
-			setPixels(dest);
-			
-			currentPhase = PUSHING_FRAME;
+			currentPhase = SETTING_PIXELS;
 		}
 		
 		/**
@@ -707,6 +759,7 @@ package com.jx.gif
 			}
 			
 			bitmap.unlock();
+			currentPhase = PUSHING_FRAME;
 		}
 		
 		private function getFrame(n:int):GIFFrame
