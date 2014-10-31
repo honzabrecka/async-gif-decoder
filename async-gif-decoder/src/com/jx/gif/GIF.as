@@ -9,6 +9,7 @@
 package com.jx.gif
 {
 	import flash.display.Bitmap;
+	import flash.display.BitmapData;
 	import flash.display.MovieClip;
 	import flash.display.Scene;
 	import flash.errors.IllegalOperationError;
@@ -31,6 +32,7 @@ package com.jx.gif
 		
 		private var bitmap:Bitmap;
 		private var timer:Timer;
+		private var cachedBitmapData:Vector.<BitmapData>;
 		
 		public function GIF() { }
 		
@@ -188,6 +190,7 @@ package com.jx.gif
 				addChild(bitmap);
 				timer = new Timer(0, 0);
 				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
+				cacheBitmapData(decoder.size.width, decoder.size.height);
 				draw(0);
 				dispatchEvent(event);
 				destroy();
@@ -232,20 +235,32 @@ package com.jx.gif
 		private function draw(frame:uint):void
 		{
 			timer.delay = _frames[frame].delay == 0 ? 100 : _frames[frame].delay;
-			
-			if (_frames[frame].dispose == 1) {
-				bitmap.bitmapData.draw(_frames[frame].image);
-			} else if (_frames[frame].dispose == 3) {
-				bitmap.bitmapData = _frames[0].image.clone();
-				bitmap.bitmapData.draw(_frames[frame].image);
-			} else {
-				bitmap.bitmapData = _frames[frame].image.clone();
-			}
+			bitmap.bitmapData = cachedBitmapData[frame];
 		}
 		
 		private function timer_tickHandler(event:TimerEvent):void
 		{
 			nextFrame();
+		}
+		
+		private function cacheBitmapData(width:uint, height:uint):void
+		{
+			cachedBitmapData = new Vector.<BitmapData>(totalFrames, true);
+			
+			var bitmapData:BitmapData = new BitmapData(width, height);
+			
+			for (var i:uint = 0; i < totalFrames; i++) {
+				if (_frames[i].dispose == 1) {
+					bitmapData.draw(_frames[i].image);
+				} else if (_frames[i].dispose == 3) {
+					bitmapData = _frames[0].image.clone();
+					bitmapData.draw(_frames[i].image);
+				} else {
+					bitmapData = _frames[i].image.clone();
+				}
+				
+				cachedBitmapData[i] = bitmapData.clone();
+			}
 		}
 		
 	}
