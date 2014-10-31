@@ -8,6 +8,7 @@
 
 package com.jx.gif
 {
+	import flash.display.Bitmap;
 	import flash.display.MovieClip;
 	import flash.display.Scene;
 	import flash.errors.IllegalOperationError;
@@ -26,6 +27,8 @@ package com.jx.gif
 		private var _frames:Vector.<GIFFrame>;
 		private var _currentFrame:int = -1;
 		private var _isPlaying:Boolean;
+		
+		private var bitmap:Bitmap;
 		
 		public function GIF() { }
 		
@@ -166,6 +169,9 @@ package com.jx.gif
 				_frames = decoder.frames;
 				_currentFrame = 0;
 				_isPlaying = false;
+				bitmap = new Bitmap();
+				addChild(bitmap);
+				draw(0);
 				dispatchEvent(event);
 				destroy();
 			}
@@ -204,6 +210,11 @@ package com.jx.gif
 			}
 			
 			_frames = null;
+		}
+		
+		private function draw(frame:uint):void
+		{
+			bitmap.bitmapData = _frames[frame].image;
 		}
 		
 	}
