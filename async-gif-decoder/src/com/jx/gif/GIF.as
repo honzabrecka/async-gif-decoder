@@ -134,6 +134,8 @@ package com.jx.gif
 		override public function nextFrame():void
 		{
 			hasBeenLoaded();
+			_currentFrame = (_currentFrame + 1) % totalFrames;
+			draw(_currentFrame);
 		}
 		
 		override public function prevFrame():void
