@@ -106,6 +106,42 @@ package com.jx.gif
 			_currentFrame = -1;
 		}
 		
+		public function decode(stream:ByteArray):void
+		{
+			function complete(event:Event):void
+			{
+				_frames = decoder.frames;
+				_currentFrame = 0;
+				bitmap = new Bitmap();
+				addChild(bitmap);
+				timer = new Timer(0, 0);
+				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
+				cacheBitmapData(decoder.size.width, decoder.size.height);
+				draw();
+				dispatchEvent(event);
+				destroy();
+			}
+			
+			function error(event:Event):void
+			{
+				dispatchEvent(event);
+				destroy();
+			}
+			
+			function destroy():void
+			{
+				decoder.removeEventListener(Event.COMPLETE, complete);
+				decoder.removeEventListener(ErrorEvent.ERROR, error);
+				decoder.destroy();
+				decoder = null;
+			}
+			
+			var decoder:GIFDecoder = new GIFDecoder();
+			decoder.addEventListener(Event.COMPLETE, complete);
+			decoder.addEventListener(ErrorEvent.ERROR, error);
+			decoder.decode(stream);
+		}
+		
 		public function get frames():Vector.<GIFFrame>
 		{
 			hasBeenLoaded();
@@ -212,42 +248,6 @@ package com.jx.gif
 			if (!timer) {
 				throw new FunctionSequenceError();
 			}
-		}
-		
-		private function decode(stream:ByteArray):void
-		{
-			function complete(event:Event):void
-			{
-				_frames = decoder.frames;
-				_currentFrame = 0;
-				bitmap = new Bitmap();
-				addChild(bitmap);
-				timer = new Timer(0, 0);
-				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
-				cacheBitmapData(decoder.size.width, decoder.size.height);
-				draw();
-				dispatchEvent(event);
-				destroy();
-			}
-			
-			function error(event:Event):void
-			{
-				dispatchEvent(event);
-				destroy();
-			}
-			
-			function destroy():void
-			{
-				decoder.removeEventListener(Event.COMPLETE, complete);
-				decoder.removeEventListener(ErrorEvent.ERROR, error);
-				decoder.destroy();
-				decoder = null;
-			}
-			
-			var decoder:GIFDecoder = new GIFDecoder();
-				decoder.addEventListener(Event.COMPLETE, complete);
-				decoder.addEventListener(ErrorEvent.ERROR, error);
-				decoder.decode(stream);
 		}
 		
 		private function checkFrame(index:uint):uint

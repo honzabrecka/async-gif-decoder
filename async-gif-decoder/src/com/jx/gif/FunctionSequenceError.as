@@ -13,7 +13,7 @@ package com.jx.gif
 		
 		public function FunctionSequenceError()
 		{
-			super("Call load() method first.");
+			super("Call load() or decode() first.");
 		}
 		
 	}
