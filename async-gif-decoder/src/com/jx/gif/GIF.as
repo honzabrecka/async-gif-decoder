@@ -10,7 +10,6 @@ package com.jx.gif
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.Scene;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
