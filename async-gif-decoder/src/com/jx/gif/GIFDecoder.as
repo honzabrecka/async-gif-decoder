@@ -75,9 +75,9 @@ package com.jx.gif
 		/** current block size */
 		private var blockSize:int = 0;
 		/** last graphic control extension info */
-		private var dispose:int = 0;
+		private var frameDispose:int = 0;
 		/** 0=no action; 1=leave in place; 2=restore to bg; 3=restore to prev */
-		private var lastDispose:int = 0;
+		private var lastFrameDispose:int = 0;
 		/** use transparent color */
 		private var transparency:Boolean = false;
 		/** delay in milliseconds */
@@ -125,7 +125,7 @@ package com.jx.gif
 			}
 		}
 		
-		public function destroy():void
+		public function dispose():void
 		{
 			cleanUp();
 			
@@ -381,10 +381,10 @@ package com.jx.gif
 		{
 			readSingleByte(); // block size
 			var packed:int = readSingleByte(); // packed fields
-			dispose = (packed & 0x1c) >> 2; // disposal method
+			frameDispose = (packed & 0x1c) >> 2; // disposal method
 			
-			if (dispose == 0) {
-				dispose = 1; // elect to keep old image if discretionary
+			if (frameDispose == 0) {
+				frameDispose = 1; // elect to keep old image if discretionary
 			}
 			
 			transparency = (packed & 1) != 0;
@@ -632,8 +632,8 @@ package com.jx.gif
 		private function checkLastDispose():void
 		{
 			// fill in starting image contents based on last image's dispose code
-			if (lastDispose > 0) {
-				if (lastDispose == 3) {
+			if (lastFrameDispose > 0) {
+				if (lastFrameDispose == 3) {
 					// use image before last
 					var n:int = frameCount - 2;
 					lastImage = n > 0 ? getFrame(n - 1).bitmapData : null;
@@ -643,7 +643,7 @@ package com.jx.gif
 					var prev:Array = getPixels(lastImage);	
 					dest = prev.slice();
 					// copy pixels
-					if (lastDispose == 2) {
+					if (lastFrameDispose == 2) {
 						// fill last image rect area with background color
 						var c:Number;
 						// assume background is transparent
@@ -782,7 +782,7 @@ package com.jx.gif
 		
 		private function pushFrame():void
 		{
-			_frames.push(new GIFFrame(bitmap, delay, lastDispose)); // add image to frame list
+			_frames.push(new GIFFrame(bitmap, delay, lastFrameDispose)); // add image to frame list
 			
 			if (transparency) {
 				act[transIndex] = save;
@@ -797,7 +797,7 @@ package com.jx.gif
 		 */
 		private function resetFrame():void 
 		{
-			lastDispose = dispose;
+			lastFrameDispose = frameDispose;
 			lastRect = new Rectangle(ix, iy, iw, ih);
 			lastImage = image;
 			lastBgColor = bgColor;

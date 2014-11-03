@@ -132,7 +132,7 @@ package com.jx.gif
 			{
 				decoder.removeEventListener(Event.COMPLETE, complete);
 				decoder.removeEventListener(ErrorEvent.ERROR, error);
-				decoder.destroy();
+				decoder.dispose();
 				decoder = null;
 			}
 			

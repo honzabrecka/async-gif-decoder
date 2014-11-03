@@ -33,7 +33,7 @@ package test.com.jx.gif
 		[After]
 		public function tearDown():void
 		{
-			decoder.destroy();
+			decoder.dispose();
 			decoder = null;
 		}
 		
