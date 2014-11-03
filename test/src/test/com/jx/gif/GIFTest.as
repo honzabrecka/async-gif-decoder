@@ -111,24 +111,6 @@ package test.com.jx.gif
 			gif.frames;
 		}
 		
-		[Test(expects="flash.errors.IllegalOperationError")]
-		public function nextScene():void
-		{
-			gif.nextScene();
-		}
-		
-		[Test(expects="flash.errors.IllegalOperationError")]
-		public function prevScene():void
-		{
-			gif.prevScene();
-		}
-		
-		[Test(expects="flash.errors.IllegalOperationError")]
-		public function currentScene():void
-		{
-			gif.currentScene;
-		}
-		
 		[Test(async)]
 		public function unexistingFile():void
 		{

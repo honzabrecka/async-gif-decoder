@@ -11,7 +11,6 @@ package com.jx.gif
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Scene;
-	import flash.errors.IllegalOperationError;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -155,12 +154,6 @@ package com.jx.gif
 			return _currentFrame.toString();
 		}
 		
-		public function get currentScene():Scene
-		{
-			throw new IllegalOperationError("Method is not implemented.");
-			return null;
-		}
-		
 		public function get framesLoaded():int
 		{
 			hasBeenLoaded();
@@ -226,16 +219,6 @@ package com.jx.gif
 			if (isPlaying) {
 				timer.stop();
 			}
-		}
-		
-		public function nextScene():void
-		{
-			throw new IllegalOperationError("Method is not implemented.");
-		}
-		
-		public function prevScene():void
-		{
-			throw new IllegalOperationError("Method is not implemented.");
 		}
 		
 		private function hasBeenLoaded():void
