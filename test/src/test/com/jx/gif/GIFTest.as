@@ -183,6 +183,46 @@ package test.com.jx.gif
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
 		
+		[Test(async)]
+		public function nextFrame():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				assertEquals(0, gif.currentFrame);
+				gif.nextFrame();
+				assertEquals(1, gif.currentFrame);
+				gif.nextFrame();
+				assertEquals(2, gif.currentFrame);
+				gif.nextFrame();
+				assertEquals(3, gif.currentFrame);
+				gif.nextFrame();
+				assertEquals(4, gif.currentFrame);
+				gif.nextFrame();
+				assertEquals(0, gif.currentFrame);
+			});
+			gif.load(new URLRequest("../fixtures/m1.gif"));
+		}
+		
+		[Test(async)]
+		public function prevFrame():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				assertEquals(0, gif.currentFrame);
+				gif.prevFrame();
+				assertEquals(4, gif.currentFrame);
+				gif.prevFrame();
+				assertEquals(3, gif.currentFrame);
+				gif.prevFrame();
+				assertEquals(2, gif.currentFrame);
+				gif.prevFrame();
+				assertEquals(1, gif.currentFrame);
+				gif.prevFrame();
+				assertEquals(0, gif.currentFrame);
+			});
+			gif.load(new URLRequest("../fixtures/m1.gif"));
+		}
+		
 		private function drawToBitmapData(gif:GIF):BitmapData
 		{
 			var bitmapData:BitmapData = new BitmapData(gif.width, gif.height);

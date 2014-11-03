@@ -197,8 +197,7 @@ package com.jx.gif
 		public function prevFrame():void
 		{
 			hasBeenLoaded();
-			_currentFrame--;
-			if (_currentFrame == -1) _currentFrame = totalFrames - 1;
+			_currentFrame = (totalFrames + (_currentFrame - 1)) % totalFrames;
 			draw();
 		}
 		
