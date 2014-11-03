@@ -67,7 +67,7 @@ package com.jx.gif
 				loader.load(request);
 		}
 		
-		public function unload():void
+		public function dispose():void
 		{
 			function clearCachedBitmapData():void
 			{

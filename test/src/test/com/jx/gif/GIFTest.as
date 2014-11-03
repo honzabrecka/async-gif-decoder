@@ -35,7 +35,7 @@ package test.com.jx.gif
 		[After]
 		public function tearDown():void
 		{
-			gif.unload();
+			gif.dispose();
 			gif = null;
 		}
 		
