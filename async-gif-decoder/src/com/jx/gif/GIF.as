@@ -10,7 +10,6 @@ package com.jx.gif
 {
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
-	import flash.display.MovieClip;
 	import flash.display.Scene;
 	import flash.errors.IllegalOperationError;
 	import flash.events.ErrorEvent;
@@ -24,13 +23,12 @@ package com.jx.gif
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
-	public class GIF extends MovieClip
+	public class GIF extends Bitmap
 	{
 		
 		private var _frames:Vector.<GIFFrame>;
 		private var _currentFrame:int = -1;
 		
-		private var bitmap:Bitmap;
 		private var timer:Timer;
 		private var cachedBitmapData:Vector.<BitmapData>;
 		
@@ -69,6 +67,13 @@ package com.jx.gif
 		
 		public function dispose():void
 		{
+			function clearBitmapData():void
+			{
+				if (bitmapData) {
+					bitmapData.dispose();
+				}
+			}
+			
 			function clearCachedBitmapData():void
 			{
 				cachedBitmapData = null;
@@ -91,18 +96,10 @@ package com.jx.gif
 				}
 			}
 			
-			function clearBitmap():void
-			{
-				if (bitmap) {
-					removeChild(bitmap);
-					bitmap = null;
-				}
-			}
-			
+			clearBitmapData();
 			clearFrames();
 			clearCachedBitmapData();
 			clearTimer();
-			clearBitmap();
 			_currentFrame = -1;
 		}
 		
@@ -112,8 +109,6 @@ package com.jx.gif
 			{
 				_frames = decoder.frames;
 				_currentFrame = 0;
-				bitmap = new Bitmap();
-				addChild(bitmap);
 				timer = new Timer(0, 0);
 				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
 				cacheBitmapData(decoder.size.width, decoder.size.height);
@@ -148,43 +143,43 @@ package com.jx.gif
 			return _frames;
 		}
 		
-		override public function get currentFrame():int
+		public function get currentFrame():int
 		{
 			hasBeenLoaded();
 			return _currentFrame;
 		}
 		
-		override public function get currentFrameLabel():String
+		public function get currentFrameLabel():String
 		{
 			hasBeenLoaded();
 			return _currentFrame.toString();
 		}
 		
-		override public function get currentScene():Scene
+		public function get currentScene():Scene
 		{
 			throw new IllegalOperationError("Method is not implemented.");
 			return null;
 		}
 		
-		override public function get framesLoaded():int
+		public function get framesLoaded():int
 		{
 			hasBeenLoaded();
 			return _frames.length;
 		}
 		
-		override public function get totalFrames():int
+		public function get totalFrames():int
 		{
 			hasBeenLoaded();
 			return _frames.length;
 		}
 		
-		override public function get isPlaying():Boolean
+		public function get isPlaying():Boolean
 		{
 			hasBeenLoaded();
 			return timer.running;
 		}
 		
-		override public function gotoAndPlay(frame:Object, scene:String=null):void
+		public function gotoAndPlay(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
 			_currentFrame = checkFrame(uint(frame));
@@ -192,7 +187,7 @@ package com.jx.gif
 			play();
 		}
 		
-		override public function gotoAndStop(frame:Object, scene:String=null):void
+		public function gotoAndStop(frame:Object, scene:String=null):void
 		{
 			hasBeenLoaded();
 			_currentFrame = checkFrame(uint(frame));
@@ -200,14 +195,14 @@ package com.jx.gif
 			stop();
 		}
 		
-		override public function nextFrame():void
+		public function nextFrame():void
 		{
 			hasBeenLoaded();
 			_currentFrame = (_currentFrame + 1) % totalFrames;
 			draw();
 		}
 		
-		override public function prevFrame():void
+		public function prevFrame():void
 		{
 			hasBeenLoaded();
 			_currentFrame--;
@@ -215,7 +210,7 @@ package com.jx.gif
 			draw();
 		}
 		
-		override public function play():void
+		public function play():void
 		{
 			hasBeenLoaded();
 			
@@ -224,7 +219,7 @@ package com.jx.gif
 			}
 		}
 		
-		override public function stop():void
+		public function stop():void
 		{
 			hasBeenLoaded();
 			
@@ -233,12 +228,12 @@ package com.jx.gif
 			}
 		}
 		
-		override public function nextScene():void
+		public function nextScene():void
 		{
 			throw new IllegalOperationError("Method is not implemented.");
 		}
 		
-		override public function prevScene():void
+		public function prevScene():void
 		{
 			throw new IllegalOperationError("Method is not implemented.");
 		}
@@ -263,7 +258,7 @@ package com.jx.gif
 		{
 			var frame:GIFFrame = frames[currentFrame];
 			timer.delay = frame.delay == 0 ? 100 : frame.delay;
-			bitmap.bitmapData = cachedBitmapData[currentFrame];
+			bitmapData = cachedBitmapData[currentFrame];
 		}
 		
 		private function timer_tickHandler(event:TimerEvent):void
