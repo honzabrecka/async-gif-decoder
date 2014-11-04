@@ -11,6 +11,7 @@ package test.com.jx.gif
 	import com.jx.gif.GIF;
 	
 	import flash.display.BitmapData;
+	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.net.URLRequest;
@@ -18,11 +19,12 @@ package test.com.jx.gif
 	import org.flexunit.asserts.assertEquals;
 	import org.flexunit.asserts.assertFalse;
 	import org.flexunit.asserts.assertTrue;
-	import org.flexunit.asserts.fail;
 	import org.flexunit.async.Async;
 
 	public class GIFTest
 	{
+		
+		private static const TIMEOUT:uint = 1000;
 		
 		private var gif:GIF;
 		
@@ -119,7 +121,14 @@ package test.com.jx.gif
 		}
 		
 		[Test(async)]
-		public function existingFile():void
+		public function badFileFormat():void
+		{
+			Async.handleEvent(this, gif, ErrorEvent.ERROR, null);
+			gif.load(new URLRequest("../fixtures/1x1.png"));
+		}
+		
+		[Test(async)]
+		public function loadAndDecode():void
 		{
 			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
 			{
@@ -129,40 +138,6 @@ package test.com.jx.gif
 				assertEquals("0", gif.currentFrameLabel);
 				assertEquals(16744448, drawToBitmapData(gif).getPixel(0, 0));
 				assertEquals(1, gif.frames.length);
-			});
-			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
-		}
-		
-		[Test(async, expects="RangeError")]
-		public function invalidGotoAndPlayIndex():void
-		{
-			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
-			{
-				gif.gotoAndPlay(0);
-			});
-			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
-		}
-		
-		[Test(async, expects="RangeError")]
-		public function invalidGotoAndStopIndex():void
-		{
-			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
-			{
-				gif.gotoAndStop(2);
-			});
-			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
-		}
-		
-		[Test(async)]
-		public function validGotoAndStopIndex():void
-		{
-			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
-			{
-				try {
-					gif.gotoAndStop(1);
-				} catch (error:RangeError) {
-					fail(error + " shouldn't be thrown.");
-				}
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
@@ -199,7 +174,7 @@ package test.com.jx.gif
 				assertEquals(4, gif.currentFrame);
 				gif.nextFrame();
 				assertEquals(0, gif.currentFrame);
-			});
+			}, TIMEOUT);
 			gif.load(new URLRequest("../fixtures/m1.gif"));
 		}
 		
@@ -219,8 +194,52 @@ package test.com.jx.gif
 				assertEquals(1, gif.currentFrame);
 				gif.prevFrame();
 				assertEquals(0, gif.currentFrame);
-			});
+			}, TIMEOUT);
 			gif.load(new URLRequest("../fixtures/m1.gif"));
+		}
+		
+		[Test(async)]
+		public function gotoAndStop():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndStop(3);
+				assertEquals(2, gif.currentFrame);
+				assertFalse(gif.isPlaying);
+			}, TIMEOUT);
+			gif.load(new URLRequest("../fixtures/m1.gif"));
+		}
+		
+		[Test(async)]
+		public function gotoAndPlay():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndPlay(3);
+				assertEquals(2, gif.currentFrame);
+				assertTrue(gif.isPlaying);
+			}, TIMEOUT);
+			gif.load(new URLRequest("../fixtures/m1.gif"));
+		}
+		
+		[Test(async, expects="RangeError")]
+		public function invalidGotoAndPlayIndex():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndPlay(0);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
+		}
+		
+		[Test(async, expects="RangeError")]
+		public function invalidGotoAndStopIndex():void
+		{
+			Async.handleEvent(this, gif, Event.COMPLETE, function(event:Event, data:Object):void
+			{
+				gif.gotoAndStop(2);
+			});
+			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
 		}
 		
 		private function drawToBitmapData(gif:GIF):BitmapData
