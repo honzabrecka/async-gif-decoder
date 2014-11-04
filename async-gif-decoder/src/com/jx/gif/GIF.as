@@ -252,13 +252,17 @@ package com.jx.gif
 			cachedBitmapData = new Vector.<BitmapData>(totalFrames, true);
 			
 			var bitmapData:BitmapData = new BitmapData(width, height);
+			var last3:uint = 0;
+			var previous:uint;
 			
 			for (var i:uint = 0; i < totalFrames; i++) {
 				if (_frames[i].dispose == 1) {
 					bitmapData.draw(_frames[i].bitmapData);
 				} else if (_frames[i].dispose == 3) {
-					bitmapData = _frames[0].bitmapData.clone();
+					previous = _frames[i - 1].dispose == 3 ? 0 : last3;
+					bitmapData = _frames[previous].bitmapData.clone();
 					bitmapData.draw(_frames[i].bitmapData);
+					last3 = i;
 				} else {
 					bitmapData = _frames[i].bitmapData.clone();
 				}
