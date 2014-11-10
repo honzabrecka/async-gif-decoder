@@ -48,12 +48,6 @@ package test.com.jx.gif
 		}
 		
 		[Test(expects="com.jx.gif.FunctionSequenceError")]
-		public function callCurrentFrameLabelBeforeLoad():void
-		{
-			gif.currentFrameLabel;
-		}
-		
-		[Test(expects="com.jx.gif.FunctionSequenceError")]
 		public function callFramesLoadedBeforeLoad():void
 		{
 			gif.framesLoaded;
@@ -135,7 +129,6 @@ package test.com.jx.gif
 				assertEquals(1, gif.framesLoaded);
 				assertEquals(1, gif.totalFrames);
 				assertEquals(0, gif.currentFrame);
-				assertEquals("0", gif.currentFrameLabel);
 				assertEquals(16744448, drawToBitmapData(gif).getPixel(0, 0));
 				assertEquals(1, gif.frames.length);
 			});

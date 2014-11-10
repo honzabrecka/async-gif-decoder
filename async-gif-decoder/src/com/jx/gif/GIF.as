@@ -147,12 +147,6 @@ package com.jx.gif
 			return _currentFrame;
 		}
 		
-		public function get currentFrameLabel():String
-		{
-			hasBeenLoaded();
-			return _currentFrame.toString();
-		}
-		
 		public function get framesLoaded():int
 		{
 			hasBeenLoaded();
