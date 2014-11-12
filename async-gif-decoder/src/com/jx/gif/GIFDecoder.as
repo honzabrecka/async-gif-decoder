@@ -24,6 +24,9 @@ package com.jx.gif
 	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	
+	[Event(name="complete", type="flash.events.Event")]
+	[Event(name="error", type="flash.events.ErrorEvent")]
+	
 	public class GIFDecoder extends Sprite
 	{
 		

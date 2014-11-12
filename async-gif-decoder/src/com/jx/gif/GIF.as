@@ -21,6 +21,11 @@ package com.jx.gif
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	
+	[Event(name="complete", type="flash.events.Event")]
+	[Event(name="error", type="flash.events.ErrorEvent")]
+	[Event(name="ioError", type="flash.events.IOErrorEvent")]
+	[Event(name="securityError", type="flash.events.SecurityErrorEvent")]
+	
 	public class GIF extends Bitmap
 	{
 		

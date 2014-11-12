@@ -3,13 +3,13 @@
 
 Build swc and test it against unit tests.
 
-@usage $ ant -Dflexsdk <path-to-flex-sdk> -Dflexunit <path-to-flexunit-ant-tasks> -Djflashplayer <path-to-flash-player-debugger>
+@usage $ ant -DFLEX_HOME <path-to-flex-sdk> -DFLEXUNIT <path-to-flexunit-ant-tasks> -DFLASHPLAYER <path-to-flash-player-debugger>
 @author Jan Břečka
 
 -->
 <project name="project" default="main" basedir=".">
     
-    <target name="main" depends="clean, compile, test"/>
+    <target name="main" depends="clean, compile, test, asdoc"/>
 
     <property name="FLEX_HOME" value="D:/sdks/flex/4.6.0"/>
     <property name="FLEXUNIT" value="D:/sdks/flexunit"/>
@@ -17,6 +17,7 @@ Build swc and test it against unit tests.
     <property name="project.dir" value="${basedir}/async-gif-decoder"/>
     <property name="tests.dir" value="${basedir}/test"/>
     <property name="BUILD.dir" value="${basedir}/build"/>
+    <property name="ASDOC.dir" value="${basedir}/asdoc-output"/>
 
     <taskdef resource="flexTasks.tasks" classpath="${FLEX_HOME}/ant/lib/flexTasks.jar" />
 
@@ -31,6 +32,8 @@ Build swc and test it against unit tests.
     <target name="clean">
         <delete dir="${BUILD.dir}"/>
         <mkdir dir="${BUILD.dir}"/>
+        <delete dir="${ASDOC.dir}"/>
+        <mkdir dir="${ASDOC.dir}"/>
     </target>
 
     <target name="compile">
@@ -77,6 +80,18 @@ Build swc and test it against unit tests.
         </junitreport>
 
         <fail if="flexunit.failure" message="FlexUnit test(s) failed."/>
+    </target>
+
+    <target name="asdoc">
+        <delete dir="${ASDOC.dir}"/>
+        <asdoc output="${ASDOC.dir}" failonerror="true"
+            lenient="true" 
+            main-title="Async GIF decoder | API documentation"
+            window-title="Async GIF decoder | API documentation"
+            left-frameset-width="340"
+            warnings="false">
+            <doc-sources path-element="${project.dir}/src"/>
+        </asdoc>
     </target>
 
 </project>
