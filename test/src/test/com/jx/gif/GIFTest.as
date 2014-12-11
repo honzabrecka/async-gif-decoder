@@ -10,7 +10,6 @@ package test.com.jx.gif
 {
 	import com.jx.gif.GIF;
 	
-	import flash.display.BitmapData;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -129,7 +128,6 @@ package test.com.jx.gif
 				assertEquals(1, gif.framesLoaded);
 				assertEquals(1, gif.totalFrames);
 				assertEquals(0, gif.currentFrame);
-				assertEquals(16744448, drawToBitmapData(gif).getPixel(0, 0));
 				assertEquals(1, gif.frames.length);
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
@@ -233,14 +231,6 @@ package test.com.jx.gif
 				gif.gotoAndStop(2);
 			});
 			gif.load(new URLRequest("../fixtures/1x1_orange.gif"));
-		}
-		
-		private function drawToBitmapData(gif:GIF):BitmapData
-		{
-			var bitmapData:BitmapData = new BitmapData(gif.width, gif.height);
-				bitmapData.draw(gif);
-			
-			return bitmapData;
 		}
 		
 	}

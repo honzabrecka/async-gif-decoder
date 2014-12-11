@@ -18,5 +18,8 @@ before_script:
   - mkdir -p test/libs
   - cp flexunit/flexunit-*-as3_*.swc test/libs
   - cp flexunit/flexunit-cilistener-*.swc test/libs
+# screenshot
+  - wget -O screenshot.swc https://github.com/honzabrecka/Screenshot/releases/download/2.1.2/Screenshot_v2.1.2.swc
+  - cp screenshot.swc test/libs
 script:
   - ant -DFLEX_HOME "flex_sdk" -DFLEXUNIT "flexunit" -DFLASHPLAYER "$HOME/Applications/Flash Player Debugger.app/Contents/MacOS/Flash Player Debugger"
