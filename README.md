@@ -20,4 +20,4 @@ var gif:GIF = new GIF();
 addChild(gif);
 ```
 
-If you want to play GIFs in your [starling](https://github.com/Gamua/Starling-Framework) based app, you can use [GPUGIF](https://gist.github.com/honzabrecka/da5cb37eea3d9b7c9bfc) class.
+If you want to play GIFs in your [starling](https://github.com/Gamua/Starling-Framework) based app, you can use `renderers/GPUGIF` class.
