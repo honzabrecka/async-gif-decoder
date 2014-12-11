@@ -5,6 +5,7 @@
     <classEntry path="com.jx.gif.GIFDecoder"/>
     <classEntry path="com.jx.gif.GIFFrame"/>
     <classEntry path="com.jx.gif.FunctionSequenceError"/>
+    <classEntry path="com.jx.gif.GIFRenderer"/>
   </includeClasses>
   <includeResources/>
   <namespaceManifests/>

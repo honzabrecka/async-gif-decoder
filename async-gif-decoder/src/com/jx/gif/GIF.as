@@ -9,7 +9,6 @@
 package com.jx.gif
 {
 	import flash.display.Bitmap;
-	import flash.display.BitmapData;
 	import flash.events.ErrorEvent;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -29,11 +28,9 @@ package com.jx.gif
 	public class GIF extends Bitmap
 	{
 		
-		private var _frames:Vector.<GIFFrame>;
 		private var _currentFrame:int = -1;
-		
 		private var timer:Timer;
-		private var cachedBitmapData:Vector.<BitmapData>;
+		private var renderer:GIFRenderer;
 		
 		public function GIF() { }
 		
@@ -77,17 +74,11 @@ package com.jx.gif
 				}
 			}
 			
-			function clearCachedBitmapData():void
+			function clearRenderer():void
 			{
-				cachedBitmapData = null;
-			}
-			
-			function clearFrames():void
-			{
-				while (_frames && _frames.length > 0) {
-					_frames.pop();
+				if (renderer) {
+					renderer.dispose();
 				}
-				_frames = null;
 			}
 			
 			function clearTimer():void
@@ -100,8 +91,7 @@ package com.jx.gif
 			}
 			
 			clearBitmapData();
-			clearFrames();
-			clearCachedBitmapData();
+			clearRenderer();
 			clearTimer();
 			_currentFrame = -1;
 		}
@@ -110,11 +100,10 @@ package com.jx.gif
 		{
 			function complete(event:Event):void
 			{
-				_frames = decoder.frames;
 				_currentFrame = 0;
 				timer = new Timer(0, 0);
 				timer.addEventListener(TimerEvent.TIMER, timer_tickHandler);
-				cacheBitmapData(decoder.size.width, decoder.size.height);
+				renderer = new GIFRenderer(decoder);
 				draw();
 				dispatchEvent(event);
 				destroy();
@@ -143,7 +132,7 @@ package com.jx.gif
 		public function get frames():Vector.<GIFFrame>
 		{
 			hasBeenLoaded();
-			return _frames;
+			return renderer.frames;
 		}
 		
 		public function get currentFrame():int
@@ -155,13 +144,13 @@ package com.jx.gif
 		public function get framesLoaded():int
 		{
 			hasBeenLoaded();
-			return _frames.length;
+			return frames.length;
 		}
 		
 		public function get totalFrames():int
 		{
 			hasBeenLoaded();
-			return _frames.length;
+			return frames.length;
 		}
 		
 		public function get isPlaying():Boolean
@@ -237,37 +226,13 @@ package com.jx.gif
 		private function draw():void
 		{
 			var frame:GIFFrame = frames[currentFrame];
-			timer.delay = frame.delay == 0 ? 100 : frame.delay;
-			bitmapData = cachedBitmapData[currentFrame];
+			timer.delay = frame.delay;
+			bitmapData = frame.bitmapData;
 		}
 		
 		private function timer_tickHandler(event:TimerEvent):void
 		{
 			nextFrame();
-		}
-		
-		private function cacheBitmapData(width:uint, height:uint):void
-		{
-			cachedBitmapData = new Vector.<BitmapData>(totalFrames, true);
-			
-			var bitmapData:BitmapData = new BitmapData(width, height);
-			var last3:uint = 0;
-			var previous:uint;
-			
-			for (var i:uint = 0; i < totalFrames; i++) {
-				if (_frames[i].dispose == 1) {
-					bitmapData.draw(_frames[i].bitmapData);
-				} else if (_frames[i].dispose == 3) {
-					previous = _frames[i - 1].dispose == 3 ? 0 : last3;
-					bitmapData = _frames[previous].bitmapData.clone();
-					bitmapData.draw(_frames[i].bitmapData);
-					last3 = i;
-				} else {
-					bitmapData = _frames[i].bitmapData.clone();
-				}
-				
-				cachedBitmapData[i] = bitmapData.clone();
-			}
 		}
 		
 	}
